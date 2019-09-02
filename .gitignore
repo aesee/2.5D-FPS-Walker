@@ -1,0 +1,7 @@
+.vs/
+Debug/
+*.vcxproj
+*.vcxproj.filters
+*.lib
+*.pdb
+*.pch
