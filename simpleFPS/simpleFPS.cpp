@@ -27,14 +27,24 @@ struct GameConfig
 	float PlayerA = 0.0f;			// Player Start Rotation
 	float FOV = 3.14159f / 3.0f;	// Field of View
 	float Depth = 30.0f;			// Maximum rendering distance
-	float Speed = 2.5f;			// Walking Speed
+	float Speed = 1.5f;			// Walking Speed
 };
 
-void DrawFrame(HDC hdc, GameConfig* gameConfig);
+struct InputControls
+{
+	bool W = false;
+	bool S = false;
+	bool A = false;
+	bool D = false;
+};
+
+void DrawFrame(GameConfig* gameConfig);
 
 std::wstring map;
-HWND* Window;
+//HWND* Window;
+HDC gameWindow;
 GameConfig gameConfig;
+InputControls input;
 std::chrono::time_point<std::chrono::system_clock> tp1;
 std::chrono::time_point<std::chrono::system_clock> tp2;
 
@@ -57,15 +67,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	
-
-	
-	
-	//wchar_t *screen = new wchar_t[gameConfig.ScreenWidth*gameConfig.ScreenHeight];
-	//HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL); // How can I change it?
-	//SetConsoleActiveScreenBuffer(hConsole);
-	
-
 	DWORD dwBytesWritten = 0;
 
 	// Create Map of world space # = wall block, . = space
@@ -87,75 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	map += L"#..............#";
 	map += L"################";
 
-	//std::chrono::time_point<std::chrono::system_clock> tp1 = std::chrono::system_clock::now();
-	//std::chrono::time_point<std::chrono::system_clock> tp2 = std::chrono::system_clock::now();
-
-	// Main cycle
-	/*while (true)
-	{
-		// We'll need time differential per frame to calculate modification
-		// to movement speeds, to ensure consistant movement, as ray-tracing
-		// is non-deterministic
-		tp2 = std::chrono::system_clock::now();
-		std::chrono::duration<float> elapsedTime = tp2 - tp1;
-		tp1 = tp2;
-		float fElapsedTime = elapsedTime.count();
-
-		// Catch controls
-		// Handle CCW Rotation
-		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			gameConfig.PlayerA -= (gameConfig.Speed * 0.75f) * fElapsedTime;
-
-		// Handle CW Rotation
-		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			gameConfig.PlayerA += (gameConfig.Speed * 0.75f) * fElapsedTime;
-
-		// Handle Forwards movement & collision
-		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
-		{
-			gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
-			{
-				gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-				gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			}
-		}
-
-		// Handle backwards movement & collision
-		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
-		{
-			gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
-			{
-				gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-				gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			}
-		}
-
-		
-
-		// Display Stats
-		//swprintf_s(screen, 40, L"X=%3.2f, Y=%3.2f, A=%3.2f FPS=%3.2f ", gameConfig.PlayerX, gameConfig.PlayerY, gameConfig.PlayerA, 1.0f / fElapsedTime);
-
-		// Display Map
-		/ *for (int nx = 0; nx < gameConfig.MapWidth; nx++)
-		{
-			for (int ny = 0; ny < gameConfig.MapWidth; ny++)
-			{
-				screen[(ny + 1)*gameConfig.ScreenWidth + nx] = map[ny * gameConfig.MapWidth + nx];
-			}
-		}
-		screen[((int)gameConfig.PlayerX + 1) * gameConfig.ScreenWidth + (int)gameConfig.PlayerY] = 'P';* /
-
-		
-		//WriteConsoleOutputCharacter(hConsole, screen, gameConfig.ScreenWidth * gameConfig.ScreenHeight, { 0,0 }, &dwBytesWritten);
-
-		
-	}*/
-
-    // Initialize global strings
+	// Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_SIMPLEFPS, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
@@ -170,35 +103,64 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
-    {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+    // Game loop:    
+	while (true)
+	{
+		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
 
-		//DrawFrame(GetDC(*Window), &gameConfig);
-    }
+		if (msg.message == WM_QUIT)
+		{
+			break;
+		}
 
-	/*HWND hWnd;
-	hWnd = CreateWindowEx(NULL, //style stuff
-		L"WindowClass", //name of the class
-		L"CHIP-8", //tytle
-		WS_OVERLAPPEDWINDOW, //options of window
-		300, //coord x
-		300, //coord y
-		wr.right - wr.left, //width
-		wr.bottom - wr.top, //height
-		NULL, //window parent
-		NULL, //menu bar handler
-		hInstance,
-		NULL);
+		// Input
+		tp2 = std::chrono::system_clock::now();
+		std::chrono::duration<float> elapsedTime = tp2 - tp1;
+		tp1 = tp2;
+		float fElapsedTime = elapsedTime.count();
 
-	ShowWindow(hWnd, nCmdShow);*/
+		if (input.A)
+		{
+			gameConfig.PlayerA -= (gameConfig.Speed * 0.75f) * fElapsedTime;
+		}
 
-	
+		if (input.D)
+		{
+			gameConfig.PlayerA += (gameConfig.Speed * 0.75f) * fElapsedTime;
+		}
+
+		if (input.W)
+		{
+			gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
+			{
+				gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+				gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			}
+		}
+
+		if (input.S)
+		{
+			gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
+			{
+				gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+				gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
+			}
+		}
+
+		// Render
+		DrawFrame(&gameConfig);
+	}
 
     return (int) msg.wParam;
 }
@@ -266,7 +228,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   gameConfig.ScreenHeight = height;
    }
 
-
+   gameWindow = GetDC(hWnd);
 
    return TRUE;
 }
@@ -283,21 +245,57 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	tp2 = std::chrono::system_clock::now();
-	std::chrono::duration<float> elapsedTime = tp2 - tp1;
-	tp1 = tp2;
-	float fElapsedTime = elapsedTime.count();
-
-	static float FPSTimer = 0;
-	FPSTimer += fElapsedTime;
-
-	if (FPSTimer > 1.0f / 30)
+	if (message == WM_KEYDOWN)
 	{
-		DrawFrame(GetDC(hWnd), &gameConfig);
-		FPSTimer = 0;
+		switch (wParam)
+		{
+		case 'A': {
+			input.A = true;
+			break;
+		}
+		case 'D': {
+			input.D = true;
+			break;
+		}
+		case 'W': {
+			input.W = true;
+			break;
+		}
+		case 'S': {
+			input.S = true;
+			break;
+		}
+		}
+
+		return 0;
 	}
 
-    switch (message)
+	if (message == WM_KEYUP || message == WM_KEYDOWN)
+	{
+		switch (wParam)
+		{
+		case 'A': {
+			input.A = false;
+			break;
+		}
+		case 'D': {
+			input.D = false;
+			break;
+		}
+		case 'W': {
+			input.W = false;
+			break;
+		}
+		case 'S': {
+			input.S = false;
+			break;
+		}
+		}
+
+		return 0;
+	}	
+
+	switch (message)
     {
     case WM_COMMAND:
         {
@@ -316,53 +314,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
-        }
-        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
-
-	case WM_KEYDOWN: {
-		switch (wParam)
-		{
-		case 'A': {
-			gameConfig.PlayerA -= (gameConfig.Speed * 0.75f) * fElapsedTime;
-			break;
-		}
-		case 'D': {
-			gameConfig.PlayerA += (gameConfig.Speed * 0.75f) * fElapsedTime;
-			break;
-		}
-		case 'W': {
-			gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
-			{
-				gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-				gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			}
-			break;
-		}
-		case 'S': {
-			gameConfig.PlayerX -= sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			gameConfig.PlayerY -= cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			if (map.c_str()[(int)gameConfig.PlayerX * gameConfig.MapWidth + (int)gameConfig.PlayerY] == '#')
-			{
-				gameConfig.PlayerX += sinf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-				gameConfig.PlayerY += cosf(gameConfig.PlayerA) * gameConfig.Speed * fElapsedTime;;
-			}
-			break;
-		}
-		}
-	}
-
-
+	
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -390,7 +345,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-void DrawFrame(HDC hdc, GameConfig* gameConfig)
+void DrawFrame(GameConfig* gameConfig)
 {
 	COLORREF *screen = (COLORREF*)calloc(gameConfig->ScreenWidth*gameConfig->ScreenHeight, sizeof(COLORREF));
 
@@ -398,36 +353,36 @@ void DrawFrame(HDC hdc, GameConfig* gameConfig)
 	for (int x = 0; x < gameConfig->ScreenWidth; x++)
 	{
 		// For each column, calculate the projected ray angle into world space
-		float fRayAngle = (gameConfig->PlayerA - gameConfig->FOV / 2.0f) + ((float)x / (float)gameConfig->ScreenWidth) * gameConfig->FOV;
+		float rayAngle = (gameConfig->PlayerA - gameConfig->FOV / 2.0f) + ((float)x / (float)gameConfig->ScreenWidth) * gameConfig->FOV;
 
 		// Find distance to wall
-		float fStepSize = 0.1f;		  // Increment size for ray casting, decrease to increase										
-		float fDistanceToWall = 0.0f; //                                      resolution
+		float stepSize = 0.1f;		  // Increment size for ray casting, decrease to increase										
+		float distanceToWall = 0.0f; //                                      resolution
 
 		bool bHitWall = false;		// Set when ray hits wall block
 		bool bBoundary = false;		// Set when ray hits boundary between two wall blocks
 
-		float fEyeX = sinf(fRayAngle); // Unit vector for ray in player space
-		float fEyeY = cosf(fRayAngle);
+		float fEyeX = sinf(rayAngle); // Unit vector for ray in player space
+		float fEyeY = cosf(rayAngle);
 
 		// Incrementally cast ray from player, along ray angle, testing for 
 		// intersection with a block
-		while (!bHitWall && fDistanceToWall < gameConfig->Depth)
+		while (!bHitWall && distanceToWall < gameConfig->Depth)
 		{
-			fDistanceToWall += fStepSize;
-			int nTestX = (int)(gameConfig->PlayerX + fEyeX * fDistanceToWall);
-			int nTestY = (int)(gameConfig->PlayerY + fEyeY * fDistanceToWall);
+			distanceToWall += stepSize;
+			int testX = (int)(gameConfig->PlayerX + fEyeX * distanceToWall);
+			int testY = (int)(gameConfig->PlayerY + fEyeY * distanceToWall);
 
 			// Test if ray is out of bounds
-			if (nTestX < 0 || nTestX >= gameConfig->MapWidth || nTestY < 0 || nTestY >= gameConfig->MapHeight)
+			if (testX < 0 || testX >= gameConfig->MapWidth || testY < 0 || testY >= gameConfig->MapHeight)
 			{
 				bHitWall = true;			// Just set distance to maximum depth
-				fDistanceToWall = gameConfig->Depth;
+				distanceToWall = gameConfig->Depth;
 			}
 			else
 			{
 				// Ray is inbounds so test to see if the ray cell is a wall block
-				if (map.c_str()[nTestX * gameConfig->MapWidth + nTestY] == '#')
+				if (map.c_str()[testX * gameConfig->MapWidth + testY] == '#')
 				{
 					// Ray has hit wall
 					bHitWall = true;
@@ -444,8 +399,8 @@ void DrawFrame(HDC hdc, GameConfig* gameConfig)
 						for (int ty = 0; ty < 2; ty++)
 						{
 							// Angle of corner to eye
-							float vy = (float)nTestY + ty - gameConfig->PlayerY;
-							float vx = (float)nTestX + tx - gameConfig->PlayerX;
+							float vy = (float)testY + ty - gameConfig->PlayerY;
+							float vx = (float)testX + tx - gameConfig->PlayerX;
 							float d = sqrt(vx*vx + vy * vy);
 							float dot = (fEyeX * vx / d) + (fEyeY * vy / d);
 							p.push_back(std::make_pair(d, dot));
@@ -455,31 +410,31 @@ void DrawFrame(HDC hdc, GameConfig* gameConfig)
 					sort(p.begin(), p.end(), [](const std::pair<float, float> &left, const std::pair<float, float> &right) {return left.first < right.first; });
 
 					// First two/three are closest (we will never see all four)
-					float fBound = 0.01f;
-					if (acos(p.at(0).second) < fBound) bBoundary = true;
-					if (acos(p.at(1).second) < fBound) bBoundary = true;
-					if (acos(p.at(2).second) < fBound) bBoundary = true;
+					float bound = 0.01f;					
+					bBoundary = acos(p.at(0).second) < bound || 
+						acos(p.at(1).second) < bound || 
+						acos(p.at(2).second) < bound;
 				}
 			}
 		}
 
 		// Calculate distance to ceiling and floor
-		int nCeiling = floor((float)(gameConfig->ScreenHeight / 2.0) - gameConfig->ScreenHeight / ((float)fDistanceToWall));
+		int nCeiling = floor((float)(gameConfig->ScreenHeight / 2.0) - gameConfig->ScreenHeight / ((float)distanceToWall));
 		int nFloor = gameConfig->ScreenHeight - nCeiling;
 
 		// Shader walls based on distance
 		//short nShade = ' ';
 		short nShade = RGB(20, 20, 20);
-		if (fDistanceToWall <= gameConfig->Depth / 4.0f)			nShade = 0x2588;	// Very close	
-		else if (fDistanceToWall < gameConfig->Depth / 3.0f)		nShade = 0x2593;
-		else if (fDistanceToWall < gameConfig->Depth / 2.0f)		nShade = 0x2592;
-		else if (fDistanceToWall < gameConfig->Depth)				nShade = 0x2591;
+		if (distanceToWall <= gameConfig->Depth / 4.0f)			nShade = 0x2588;	// Very close	
+		else if (distanceToWall < gameConfig->Depth / 3.0f)		nShade = 0x2593;
+		else if (distanceToWall < gameConfig->Depth / 2.0f)		nShade = 0x2592;
+		else if (distanceToWall < gameConfig->Depth)				nShade = 0x2591;
 		else											nShade = RGB(20, 20, 20);		// Too far away
 
 		if (bBoundary)
 		{
 			//nShade = ' '; // Black it out
-			nShade = RGB(20, 20, 20);
+			nShade = RGB(0, 0, 0);
 		}
 
 		for (int y = 0; y < gameConfig->ScreenHeight; y++)
@@ -515,13 +470,11 @@ void DrawFrame(HDC hdc, GameConfig* gameConfig)
 		1,
 		8 * 4,
 		(void*)screen);
-	//HDC hdc = GetDC(nullptr);
-	//HDC src = CreateCompatibleDC(hdc);
 				
-	HDC src = CreateCompatibleDC(hdc);
+	HDC src = CreateCompatibleDC(gameWindow);
 	SelectObject(src, bitmap);
 		
-	BitBlt(hdc, // Destination
+	BitBlt(gameWindow, // Destination
 		0,  // x and
 		0,  // y - upper-left corner of place, where we'd like to copy
 		gameConfig->ScreenWidth,  // width of the region
