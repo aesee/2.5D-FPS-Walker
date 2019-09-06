@@ -362,16 +362,16 @@ void DrawFrame(GameConfig* gameConfig)
 		bool bHitWall = false;		// Set when ray hits wall block
 		bool bBoundary = false;		// Set when ray hits boundary between two wall blocks
 
-		float fEyeX = sinf(rayAngle); // Unit vector for ray in player space
-		float fEyeY = cosf(rayAngle);
+		float eyeX = sinf(rayAngle); // Unit vector for ray in player space
+		float eyeY = cosf(rayAngle);
 
 		// Incrementally cast ray from player, along ray angle, testing for 
 		// intersection with a block
 		while (!bHitWall && distanceToWall < gameConfig->Depth)
 		{
 			distanceToWall += stepSize;
-			int testX = (int)(gameConfig->PlayerX + fEyeX * distanceToWall);
-			int testY = (int)(gameConfig->PlayerY + fEyeY * distanceToWall);
+			int testX = (int)(gameConfig->PlayerX + eyeX * distanceToWall);
+			int testY = (int)(gameConfig->PlayerY + eyeY * distanceToWall);
 
 			// Test if ray is out of bounds
 			if (testX < 0 || testX >= gameConfig->MapWidth || testY < 0 || testY >= gameConfig->MapHeight)
@@ -402,7 +402,7 @@ void DrawFrame(GameConfig* gameConfig)
 							float vy = (float)testY + ty - gameConfig->PlayerY;
 							float vx = (float)testX + tx - gameConfig->PlayerX;
 							float d = sqrt(vx*vx + vy * vy);
-							float dot = (fEyeX * vx / d) + (fEyeY * vy / d);
+							float dot = (eyeX * vx / d) + (eyeY * vy / d);
 							p.push_back(std::make_pair(d, dot));
 						}
 
@@ -423,42 +423,43 @@ void DrawFrame(GameConfig* gameConfig)
 		int nFloor = gameConfig->ScreenHeight - nCeiling;
 
 		// Shader walls based on distance
-		//short nShade = ' ';
-		short nShade = RGB(20, 20, 20);
-		if (distanceToWall <= gameConfig->Depth / 4.0f)			nShade = 0x2588;	// Very close	
-		else if (distanceToWall < gameConfig->Depth / 3.0f)		nShade = 0x2593;
-		else if (distanceToWall < gameConfig->Depth / 2.0f)		nShade = 0x2592;
-		else if (distanceToWall < gameConfig->Depth)				nShade = 0x2591;
-		else											nShade = RGB(20, 20, 20);		// Too far away
+		// Also funny thing about color:
+		// the order is backward so RGB is BGR
+		COLORREF nShade = RGB(0, 0, 0);
+		if (distanceToWall <= gameConfig->Depth / 4.0f)			nShade = RGB(156, 0, 10);	// Very close	
+		else if (distanceToWall < gameConfig->Depth / 3.0f)		nShade = RGB(133, 0, 9);
+		else if (distanceToWall < gameConfig->Depth / 2.0f)		nShade = RGB(102, 0, 7);
+		else if (distanceToWall < gameConfig->Depth)			nShade = RGB(79, 0, 5);
+		else											nShade = RGB(54, 0, 4);		// Too far away
 
 		if (bBoundary)
 		{
-			//nShade = ' '; // Black it out
-			nShade = RGB(0, 0, 0);
+			nShade = RGB(0, 0, 0);	// Black
 		}
 
 		for (int y = 0; y < gameConfig->ScreenHeight; y++)
 		{
+			COLORREF& pixel = screen[y*gameConfig->ScreenWidth + x];
+
 			// Each Row
 			if (y <= nCeiling)
 			{
-				//screen[y*gameConfig.ScreenWidth + x] = ' ';
-				screen[y*gameConfig->ScreenWidth + x] = RGB(0, 0, 0);
+				pixel = RGB(0, 0, 0);
 			}
 			else if (y > nCeiling && y <= nFloor)
 			{
-				screen[y*gameConfig->ScreenWidth + x] = nShade;
+				pixel = nShade;
 			}
 			else // Floor
 			{
 				// Shade floor based on distance
 				float b = 1.0f - (((float)y - gameConfig->ScreenHeight / 2.0f) / ((float)gameConfig->ScreenHeight / 2.0f));
-				if (b < 0.25)		nShade = RGB(110, 110, 110);//nShade = '#';
-				else if (b < 0.5)	nShade = RGB(110, 110, 110);//nShade = 'x';
-				else if (b < 0.75)	nShade = RGB(90, 90, 90);//nShade = '.';
-				else if (b < 0.9)	nShade = RGB(70, 70, 70);//nShade = '-';
-				else				nShade = RGB(50, 50, 50);//nShade = ' ';
-				screen[y*gameConfig->ScreenWidth + x] = nShade;
+				if (b < 0.25)		nShade = RGB(110, 110, 110);
+				else if (b < 0.5)	nShade = RGB(110, 110, 110);
+				else if (b < 0.75)	nShade = RGB(90, 90, 90);
+				else if (b < 0.9)	nShade = RGB(70, 70, 70);
+				else				nShade = RGB(50, 50, 50);
+				pixel = nShade;
 			}
 		}
 	}
