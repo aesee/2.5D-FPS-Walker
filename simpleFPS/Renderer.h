@@ -1,5 +1,6 @@
 #pragma once
 #include "EngineLib.h"
+#include <Windows.h>
 
 class Map;
 

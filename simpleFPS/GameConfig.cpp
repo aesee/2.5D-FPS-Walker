@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "GameConfig.h"
 
 GameConfig* GameConfig::gameConfig = nullptr;

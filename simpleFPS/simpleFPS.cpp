@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "simpleFPS.h"
 #include <utility>
 #include <chrono>
