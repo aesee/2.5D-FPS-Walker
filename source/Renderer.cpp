@@ -84,7 +84,7 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 		}
 
 		// Calculate distance to ceiling and floor
-		int nCeiling = floor((float)(resolution.y / 2.0) - resolution.y / ((float)distanceToWall));
+		int nCeiling = (int) floor(resolution.y / 2.0 - resolution.y / distanceToWall);
 		int nFloor = resolution.y - nCeiling;
 
 		// Shader walls based on distance

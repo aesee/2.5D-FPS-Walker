@@ -21,12 +21,12 @@ public:
 
 private:
 	COLORREF* CreateScreenBuffer();
-	Vector2D GetScreenSize() { return resolution; }
+	IntVector2D GetScreenSize() { return resolution; }
 	void SetPixel(INT32 pixel, COLORREF value);
 	void MoveBufferToScreen();
 
 private:
-	Vector2D resolution = Vector2D(800, 600);
+	IntVector2D resolution = IntVector2D(800, 600);
 	COLORREF* screen;
 	HDC gameWindow;
 	Map* levelMap;

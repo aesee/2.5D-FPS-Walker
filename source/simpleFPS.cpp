@@ -128,7 +128,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
 			player.SetPosition(playerPosition + offsetPosition);
 
-			if (map.IsWallIn(playerPosition.x, playerPosition.y))
+			if (map.IsWallIn((int)playerPosition.x, (int)playerPosition.y))
 			{
 				player.SetPosition(playerPosition);
 			}
@@ -143,7 +143,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
 			player.SetPosition(playerPosition - offsetPosition);
 
-			if (map.IsWallIn(playerPosition.x, playerPosition.y))
+			if (map.IsWallIn((int)playerPosition.x, (int)playerPosition.y))
 			{
 				player.SetPosition(playerPosition);
 			}
