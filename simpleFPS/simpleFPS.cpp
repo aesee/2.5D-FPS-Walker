@@ -1,18 +1,8 @@
-// simpleFPS.cpp : Defines the entry point for the application.
-//
-
 #include "stdafx.h"
 #include "simpleFPS.h"
-
-#include <iostream>
-#include <vector>
 #include <utility>
-#include <algorithm>
 #include <chrono>
-
-#include <stdio.h>
 #include <Windows.h>
-
 #include "GameConfig.h"
 #include "Renderer.h"
 #include "Map.h"

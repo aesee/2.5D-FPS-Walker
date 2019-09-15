@@ -2,11 +2,8 @@
 
 struct Vector2D
 {
-	Vector2D(float x, float y)
-	{
-		this->x = x;
-		this->y = y;
-	}
+	Vector2D(float inX, float inY)
+		: x(inX), y(inY) {}
 
 	float x;
 	float y;

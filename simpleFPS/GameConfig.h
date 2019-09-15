@@ -1,5 +1,4 @@
 #pragma once
-#include "EngineLib.h"
 
 class GameConfig
 {
@@ -17,15 +16,3 @@ public:
 	float Depth = 30.0f;			// Maximum rendering distance
 	float Speed = 1.5f;			// Walking Speed
 };
-
-GameConfig* GameConfig::gameConfig = nullptr;
-
-GameConfig& GameConfig::Get()
-{
-	if (!gameConfig)
-	{
-		gameConfig = new GameConfig;
-	}
-
-	return *gameConfig;
-}

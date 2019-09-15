@@ -4,7 +4,7 @@
 class Player
 {
 public:
-	Player() {}
+	Player() {};
 	~Player() {}
 
 	void SetPosition(Vector2D newPosition) { position = newPosition; }
@@ -14,5 +14,5 @@ public:
 
 private:
 	Vector2D position = Vector2D{ 14.7f, 5.09f };
-	float rotation = 0.0f;			// Player Start Rotation
+	float rotation = 0.0f;;			// Player Start Rotation
 };
