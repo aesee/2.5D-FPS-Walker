@@ -7,6 +7,11 @@
 #include "Map.h"
 #include "Player.h"
 
+// Set main as startup point for windows linker
+#ifdef _MSC_VER
+#pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
+#endif
+
 #define MAX_LOADSTRING 100
 
 struct InputControls
@@ -31,24 +36,25 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int main()
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
-	DWORD dwBytesWritten = 0;
+	STARTUPINFO StartupInfo;
+	StartupInfo.dwFlags = 0;
+	GetStartupInfo(&StartupInfo);
 	
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	
+	DWORD dwBytesWritten = 0;
+
 	// Initialize global strings
-    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-    LoadStringW(hInstance, IDC_SIMPLEFPS, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadStringW(hInstance, IDC_SIMPLEFPS, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
 
 	Renderer* renderer;
 	GameConfig& gameConfig = GameConfig::Get();
-    // Perform application initialization:
+
+	// Perform application initialization:
 	{
 		hInst = hInstance; // Store instance handle in our global variable
 
@@ -60,7 +66,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			return FALSE;
 		}
 
-		ShowWindow(hWnd, nCmdShow);
+		ShowWindow(hWnd, (StartupInfo.dwFlags & STARTF_USESHOWWINDOW)
+			? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
 		UpdateWindow(hWnd);
 
 		renderer = new Renderer(GetDC(hWnd), gameConfig.FOV, gameConfig.Depth);
@@ -72,19 +79,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			int height = rect.bottom - rect.top;
 
 			renderer->SetScreenSize(width, height);
-		}		
+		}
 	}
 
-    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
 
-    MSG msg;	
+	MSG msg;
 
 	Map map;
 	renderer->SetMap(&map);
 
 	Player player;
 
-    // Game loop:    
+	// Game loop:    
 	while (true)
 	{
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -155,7 +162,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	delete renderer;
 
-    return (int) msg.wParam;
+	return (int)msg.wParam;
 }
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
