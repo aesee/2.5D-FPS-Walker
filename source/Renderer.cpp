@@ -6,8 +6,8 @@
 
 void Renderer::SetScreenSize(int width, int height)
 {
-	resolution.x = width;
-	resolution.y = height;
+	m_resolution.x = width;
+	m_resolution.y = height;
 }
 
 void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
@@ -15,10 +15,10 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 	CreateScreenBuffer();
 
 	// Find a walls around
-	for (int x = 0; x < resolution.x; x++)
+	for (int x = 0; x < m_resolution.x; x++)
 	{
 		// For each column, calculate the projected ray angle into world space
-		float rayAngle = (playerRotation - fov / 2.0f) + ((float)x / resolution.x) * fov;
+		float rayAngle = (playerRotation - m_fov / 2.0f) + ((float)x / m_resolution.x) * m_fov;
 
 		// Find distance to wall
 		float stepSize = 0.1f;		  // Increment size for ray casting, decrease to increase										
@@ -32,22 +32,22 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 
 		// Incrementally cast ray from player, along ray angle, testing for 
 		// intersection with a block
-		while (!bHitWall && distanceToWall < depth)
+		while (!bHitWall && distanceToWall < m_depth)
 		{
 			distanceToWall += stepSize;
 			int testX = (int)(playerPosition.x + eyeX * distanceToWall);
 			int testY = (int)(playerPosition.y + eyeY * distanceToWall);
 
 			// Test if ray is out of bounds
-			if (testX < 0 || testX >= levelMap->GetSize().x || testY < 0 || testY >= levelMap->GetSize().y)
+			if (testX < 0 || testX >= m_levelMap->GetSize().x || testY < 0 || testY >= m_levelMap->GetSize().y)
 			{
 				bHitWall = true;			// Just set distance to maximum depth
-				distanceToWall = depth;
+				distanceToWall = m_depth;
 			}
 			else
 			{
 				// Ray is inbounds so test to see if the ray cell is a wall block
-				if (levelMap->IsWallIn(testX, testY))
+				if (m_levelMap->IsWallIn(testX, testY))
 				{
 					// Ray has hit wall
 					bHitWall = true;
@@ -84,17 +84,17 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 		}
 
 		// Calculate distance to ceiling and floor
-		int nCeiling = (int) floor(resolution.y / 2.0 - resolution.y / distanceToWall);
-		int nFloor = resolution.y - nCeiling;
+		int nCeiling = (int) floor(m_resolution.y / 2.0 - m_resolution.y / distanceToWall);
+		int nFloor = m_resolution.y - nCeiling;
 
 		// Shader walls based on distance
 		// Also funny thing about color:
 		// the order is backward so RGB is BGR
 		COLORREF nShade = RGB(0, 0, 0);
-		if (distanceToWall <= depth / 4.0f)			nShade = RGB(156, 0, 10);	// Very close	
-		else if (distanceToWall < depth / 3.0f)		nShade = RGB(133, 0, 9);
-		else if (distanceToWall < depth / 2.0f)		nShade = RGB(102, 0, 7);
-		else if (distanceToWall < depth)			nShade = RGB(79, 0, 5);
+		if (distanceToWall <= m_depth / 4.0f)			nShade = RGB(156, 0, 10);	// Very close	
+		else if (distanceToWall < m_depth / 3.0f)		nShade = RGB(133, 0, 9);
+		else if (distanceToWall < m_depth / 2.0f)		nShade = RGB(102, 0, 7);
+		else if (distanceToWall < m_depth)			nShade = RGB(79, 0, 5);
 		else											nShade = RGB(54, 0, 4);		// Too far away
 
 		if (bBoundary)
@@ -102,9 +102,9 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 			nShade = RGB(0, 0, 0);	// Black
 		}
 
-		for (int y = 0; y < resolution.y; y++)
+		for (int y = 0; y < m_resolution.y; y++)
 		{
-			int pixel = static_cast<int>(y*resolution.x + x);
+			int pixel = static_cast<int>(y*m_resolution.x + x);
 
 			// Each Row
 			if (y <= nCeiling)
@@ -118,7 +118,7 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 			else // Floor
 			{
 				// Shade floor based on distance
-				float b = 1.0f - (((float)y - resolution.y / 2.0f) / (resolution.y / 2.0f));
+				float b = 1.0f - (((float)y - m_resolution.y / 2.0f) / (m_resolution.y / 2.0f));
 				if (b < 0.25)		nShade = RGB(110, 110, 110);
 				else if (b < 0.5)	nShade = RGB(110, 110, 110);
 				else if (b < 0.75)	nShade = RGB(90, 90, 90);
@@ -135,32 +135,32 @@ void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
 
 COLORREF* Renderer::CreateScreenBuffer()
 {
-	screen = new COLORREF[resolution.x * resolution.y];
-	return screen;
+	m_screen = new COLORREF[m_resolution.x * m_resolution.y];
+	return m_screen;
 }
 
 void Renderer::SetPixel(INT32 pixel, COLORREF value)
 {
-	screen[pixel] = value;
+	m_screen[pixel] = value;
 }
 
 void Renderer::MoveBufferToScreen()
 {
-	SetPixel(static_cast<int>(resolution.x * resolution.y - 1), '\0');
+	SetPixel(static_cast<int>(m_resolution.x * m_resolution.y - 1), '\0');
 
-	HBITMAP bitmap = CreateBitmap(resolution.x, resolution.y,
+	HBITMAP bitmap = CreateBitmap(m_resolution.x, m_resolution.y,
 		1,
 		8 * 4,
-		(void*)screen);
+		(void*)m_screen);
 
-	HDC src = CreateCompatibleDC(gameWindow);
+	HDC src = CreateCompatibleDC(m_gameWindow);
 	SelectObject(src, bitmap);
 
-	BitBlt(gameWindow, // Destination
+	BitBlt(m_gameWindow, // Destination
 		0,  // x and
 		0,  // y - upper-left corner of place, where we'd like to copy
-		resolution.x,  // width of the region
-		resolution.y, // height
+		m_resolution.x,  // width of the region
+		m_resolution.y, // height
 		src, // source
 		0,   // x and
 		0,   // y of upper left corner  of part of the source, from where we'd like to copy
@@ -168,6 +168,6 @@ void Renderer::MoveBufferToScreen()
 
 	DeleteDC(src); // Deleting temp HDC
 
-	delete[] screen;
-	screen = nullptr;
+	delete[] m_screen;
+	m_screen = nullptr;
 }

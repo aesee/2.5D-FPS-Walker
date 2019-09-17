@@ -9,7 +9,7 @@ private:
 	GameConfig() {};
 
 private:
-	static GameConfig* gameConfig;
+	static GameConfig* m_gameConfig;
 
 public:
 	float FOV = 3.14159f / 3.0f;	// Field of View
