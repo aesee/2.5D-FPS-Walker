@@ -1,13 +1,7 @@
 #include "GameConfig.h"
 
-GameConfig* GameConfig::m_gameConfig = nullptr;
-
 GameConfig& GameConfig::Get()
 {
-	if (!m_gameConfig)
-	{
-		m_gameConfig = new GameConfig;
-	}
-
-	return *m_gameConfig;
+	static GameConfig* s_gameConfig = new GameConfig;
+	return *s_gameConfig;
 }
