@@ -36,11 +36,11 @@ void Input::UpdateInput(GameConfig& gameConfig, Player& player, Map& map)
 
 		float movementSpeed = gameConfig.Speed * fElapsedTime;
 		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
-		player.SetPosition(playerPosition + offsetPosition);
+		Vector2D newPosition = playerPosition + offsetPosition;
 
-		if (map.IsWallIn((int)playerPosition.x, (int)playerPosition.y))
+		if (!map.IsWallIn(round(newPosition.x), round(newPosition.y)))
 		{
-			player.SetPosition(playerPosition);
+			player.SetPosition(newPosition);
 		}
 	}
 
@@ -51,11 +51,11 @@ void Input::UpdateInput(GameConfig& gameConfig, Player& player, Map& map)
 
 		float movementSpeed = gameConfig.Speed * fElapsedTime;
 		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
-		player.SetPosition(playerPosition - offsetPosition);
+		Vector2D newPosition = playerPosition - offsetPosition;
 
-		if (map.IsWallIn((int)playerPosition.x, (int)playerPosition.y))
+		if (!map.IsWallIn(round(playerPosition.x), round(playerPosition.y)))
 		{
-			player.SetPosition(playerPosition);
+			player.SetPosition(newPosition);
 		}
 	}
 }

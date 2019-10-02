@@ -23,7 +23,7 @@ int main()
 	renderer->SetMap(&map);
 
 	// Create player
-	Vector2D StartLocation = Vector2D(14.7f, 5.09f);
+	Vector2D StartLocation = Vector2D(10.0f, 5.09f);
 	Player player(StartLocation);
 
 	// Game loop:
