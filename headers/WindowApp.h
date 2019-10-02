@@ -16,4 +16,5 @@ private:
 	HINSTANCE m_hInstance;
 	MSG m_msg;
 	HACCEL m_hAccelTable;
+	HWND m_hWnd;
 };

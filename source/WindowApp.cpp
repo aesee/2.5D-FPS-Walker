@@ -30,6 +30,22 @@ WindowApp::WindowApp()
 	}
 		
 	m_hAccelTable = LoadAccelerators(m_hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
+
+	m_hWnd = CreateWindowW(m_szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, m_hInstance, nullptr);
+
+	if (!m_hWnd)
+	{
+		throw std::string("Can't create a window!");
+	}
+
+	STARTUPINFO StartupInfo;
+	StartupInfo.dwFlags = 0;
+	GetStartupInfo(&StartupInfo);
+
+	ShowWindow(m_hWnd, (StartupInfo.dwFlags & STARTF_USESHOWWINDOW)
+		? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
+	UpdateWindow(m_hWnd);
 }
 
 bool WindowApp::IsUserWantsToExit()
@@ -58,26 +74,10 @@ HINSTANCE* WindowApp::GetInstance()
 
 std::unique_ptr<Renderer> WindowApp::CreateRenderer(float FOV, float Depth)
 {
-	HWND hWnd = CreateWindowW(m_szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, m_hInstance, nullptr);
-
-	if (!hWnd)
-	{
-		return FALSE;
-	}
-
-	STARTUPINFO StartupInfo;
-	StartupInfo.dwFlags = 0;
-	GetStartupInfo(&StartupInfo);
-
-	ShowWindow(hWnd, (StartupInfo.dwFlags & STARTF_USESHOWWINDOW)
-		? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
-	UpdateWindow(hWnd);
-
-	std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(Renderer(GetDC(hWnd), FOV, Depth));
+	std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(Renderer(GetDC(m_hWnd), FOV, Depth));
 
 	RECT rect;
-	if (GetWindowRect(hWnd, &rect))
+	if (GetWindowRect(m_hWnd, &rect))
 	{
 		int width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
