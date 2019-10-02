@@ -22,7 +22,7 @@ private:
 	void MoveBufferToScreen();
 
 private:
-	IntVector2D m_resolution = IntVector2D(800, 600);
+	IntVector2D m_resolution = IntVector2D(1280, 720);
 	COLORREF* m_screen;
 	HDC m_gameWindow;
 	Map* m_levelMap;

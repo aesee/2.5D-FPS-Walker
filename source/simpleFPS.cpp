@@ -2,6 +2,7 @@
 #include <functional>
 #include <utility>
 #include <Windows.h>
+#include <memory>
 #include "GameConfig.h"
 #include "Renderer.h"
 #include "Map.h"
@@ -21,7 +22,7 @@ int main()
 
 	static HINSTANCE hInstance = GetModuleHandle(NULL);
 
-	Renderer* renderer;
+	std::unique_ptr<Renderer> renderer;
 	GameConfig& gameConfig = GameConfig::Get();	
 	Input input(&hInstance);
 
@@ -61,7 +62,7 @@ int main()
 			? StartupInfo.wShowWindow : SW_SHOWDEFAULT);
 		UpdateWindow(hWnd);
 
-		renderer = new Renderer(GetDC(hWnd), gameConfig.FOV, gameConfig.Depth);
+		renderer = std::make_unique<Renderer>(Renderer(GetDC(hWnd), gameConfig.FOV, gameConfig.Depth));
 
 		RECT rect;
 		if (GetWindowRect(hWnd, &rect))
@@ -105,8 +106,6 @@ int main()
 		// Render
 		renderer->DrawFrame(player.GetPosition(), player.GetRotation());
 	}
-
-	delete renderer;
 
 	return (int)msg.wParam;
 }
