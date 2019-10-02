@@ -17,7 +17,6 @@
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
 ATOM MyRegisterClass(HINSTANCE hInstance, Input& input)
@@ -28,14 +27,13 @@ ATOM MyRegisterClass(HINSTANCE hInstance, Input& input)
 
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = Input::WndProc;
-	//wcex.lpfnWndProc = input.WndProc;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SIMPLEFPS));
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_SIMPLEFPS);
+	wcex.lpszMenuName = nullptr;		// Hide menu
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -53,7 +51,6 @@ int main()
 	DWORD dwBytesWritten = 0;
 
 	// Initialize global strings
-	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_SIMPLEFPS, szWindowClass, MAX_LOADSTRING);
 
 	Renderer* renderer;
@@ -65,7 +62,7 @@ int main()
 	{
 		hInst = hInstance; // Store instance handle in our global variable
 
-		HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+		HWND hWnd = CreateWindowW(szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
 		if (!hWnd)
@@ -90,7 +87,6 @@ int main()
 	}
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
-
 	MSG msg;
 
 	Map map;
