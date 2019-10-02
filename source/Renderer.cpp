@@ -4,15 +4,22 @@
 #include <vector>
 #include <algorithm>
 
+Renderer::~Renderer()
+{
+	delete[] m_screen;
+}
+
 void Renderer::SetScreenSize(int width, int height)
 {
 	m_resolution.x = width;
 	m_resolution.y = height;
+
+	m_screen = new COLORREF[m_resolution.x * m_resolution.y];
 }
 
 void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 {
-	CreateScreenBuffer();
+	//CreateScreenBuffer();
 
 	// Find a walls around
 	for (int x = 0; x < m_resolution.x; x++)
@@ -133,11 +140,11 @@ void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 	MoveBufferToScreen();
 }
 
-COLORREF* Renderer::CreateScreenBuffer()
+/*COLORREF* Renderer::CreateScreenBuffer()
 {
 	m_screen = new COLORREF[m_resolution.x * m_resolution.y];
 	return m_screen;
-}
+}*/
 
 void Renderer::SetPixel(INT32 pixel, COLORREF value)
 {
@@ -167,7 +174,5 @@ void Renderer::MoveBufferToScreen()
 		SRCCOPY); // Defined DWORD to juct copy pixels. Watch more on msdn;
 
 	DeleteDC(src); // Deleting temp HDC
-
-	delete[] m_screen;
-	m_screen = nullptr;
+	DeleteObject(bitmap);
 }

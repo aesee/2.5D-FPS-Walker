@@ -19,7 +19,7 @@ int main()
 	
 	// Init map
 	Map map;
-	std::unique_ptr<Renderer> renderer = window.CreateRenderer(gameConfig.FOV, gameConfig.Depth);
+	std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(*window.CreateRenderer(gameConfig.FOV, gameConfig.Depth));
 	renderer->SetMap(&map);
 
 	// Create player

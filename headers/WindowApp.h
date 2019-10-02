@@ -9,7 +9,7 @@ public:
 	bool IsUserWantsToExit();
 	int GetState() const;
 	HINSTANCE* GetInstance();
-	std::unique_ptr<class Renderer> CreateRenderer(float FOV, float Depth);
+	class Renderer* CreateRenderer(float FOV, float Depth);
 
 private:
 	LPCWSTR m_szWindowClass = L"SimpleFPSGameWindow";

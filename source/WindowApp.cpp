@@ -70,9 +70,9 @@ HINSTANCE* WindowApp::GetInstance()
 	return &m_hInstance;
 }
 
-std::unique_ptr<Renderer> WindowApp::CreateRenderer(float FOV, float Depth)
+Renderer* WindowApp::CreateRenderer(float FOV, float Depth)
 {
-	std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(Renderer(GetDC(m_hWnd), FOV, Depth));
+	Renderer* renderer = new Renderer(GetDC(m_hWnd), FOV, Depth);
 
 	RECT rect;
 	if (GetWindowRect(m_hWnd, &rect))
