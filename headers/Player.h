@@ -14,5 +14,5 @@ public:
 
 private:
 	Vector2D m_position = Vector2D{ 14.7f, 5.09f };
-	float m_rotation = 0.0f;;			// Player Start Rotation
+	float m_rotation = 0.0f;			// Player Start Rotation
 };
