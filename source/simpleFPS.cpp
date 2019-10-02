@@ -13,32 +13,8 @@
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
-#define MAX_LOADSTRING 100
-
 // Global Variables:
 HINSTANCE hInst;                                // current instance
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-
-ATOM MyRegisterClass(HINSTANCE hInstance, Input& input)
-{
-	WNDCLASSEXW wcex;
-
-	wcex.cbSize = sizeof(WNDCLASSEX);
-
-	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = Input::WndProc;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SIMPLEFPS));
-	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = nullptr;		// Hide menu
-	wcex.lpszClassName = szWindowClass;
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-	return RegisterClassExW(&wcex);
-}
 
 int main()
 {
@@ -48,15 +24,31 @@ int main()
 
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 
-	DWORD dwBytesWritten = 0;
-
-	// Initialize global strings
-	LoadStringW(hInstance, IDC_SIMPLEFPS, szWindowClass, MAX_LOADSTRING);
-
 	Renderer* renderer;
 	GameConfig& gameConfig = GameConfig::Get();	
 	Input input(&hInst);
-	MyRegisterClass(hInstance, input);
+
+	LPCWSTR szWindowClass = L"SimpleFPSGameWindow";
+	// Register window class
+	{
+		WNDCLASSEXW wcex;
+
+		wcex.cbSize = sizeof(WNDCLASSEX);
+
+		wcex.style = CS_HREDRAW | CS_VREDRAW;
+		wcex.lpfnWndProc = Input::WndProc;
+		wcex.cbClsExtra = 0;
+		wcex.cbWndExtra = 0;
+		wcex.hInstance = hInstance;
+		wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SIMPLEFPS));
+		wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		wcex.lpszMenuName = nullptr;		// Hide menu
+		wcex.lpszClassName = szWindowClass;
+		wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+		RegisterClassExW(&wcex);
+	}
 
 	// Perform application initialization:
 	{
@@ -86,15 +78,16 @@ int main()
 		}
 	}
 
-	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
-	MSG msg;
-
+	// Init map
 	Map map;
 	renderer->SetMap(&map);
 
+	// Create player
 	Player player;
 
-	// Game loop:    
+	// Game loop:
+	MSG msg;
+	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
 	while (true)
 	{
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
