@@ -4,15 +4,15 @@
 class Player
 {
 public:
-	Player() {};
+	Player(Vector2D InitialPosition = Vector2D(0, 0), float InitialRotation = 0);
 	~Player() {}
 
-	void SetPosition(Vector2D newPosition) { m_position = newPosition; }
-	void SetRotation(float newRotation) { m_rotation = newRotation; }
-	Vector2D GetPosition() { return m_position; }
+	void SetPosition(Vector2D newPosition);
+	void SetRotation(float newRotation);
+	Vector2D GetPosition();
 	float GetRotation() { return m_rotation; }
 
 private:
-	Vector2D m_position = Vector2D{ 14.7f, 5.09f };
-	float m_rotation = 0.0f;			// Player Start Rotation
+	Vector2D m_position;
+	float m_rotation;			// Player Start Rotation
 };

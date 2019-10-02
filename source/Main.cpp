@@ -23,7 +23,8 @@ int main()
 	renderer->SetMap(&map);
 
 	// Create player
-	Player player;
+	Vector2D StartLocation = Vector2D(14.7f, 5.09f);
+	Player player(StartLocation);
 
 	// Game loop:
 	while (true)
@@ -37,7 +38,9 @@ int main()
 		input.UpdateInput(gameConfig, player, map);
 
 		// Render
-		renderer->DrawFrame(player.GetPosition(), player.GetRotation());
+		Vector2D PlayerPosition = player.GetPosition();
+		float PlayerRotation = player.GetRotation();
+		renderer->DrawFrame(PlayerPosition, PlayerRotation);
 	}
 
 	return window.GetState();

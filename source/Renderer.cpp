@@ -10,7 +10,7 @@ void Renderer::SetScreenSize(int width, int height)
 	m_resolution.y = height;
 }
 
-void Renderer::DrawFrame(Vector2D playerPosition, float playerRotation)
+void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 {
 	CreateScreenBuffer();
 

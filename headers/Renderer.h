@@ -13,7 +13,7 @@ public:
 
 	void SetScreenSize(int width, int height);
 	void SetMap(Map* map) { m_levelMap = map; }
-	void DrawFrame(Vector2D playerPosition, float playerRotation);
+	void DrawFrame(Vector2D& playerPosition, float playerRotation);
 
 private:
 	COLORREF* CreateScreenBuffer();
@@ -22,7 +22,7 @@ private:
 	void MoveBufferToScreen();
 
 private:
-	IntVector2D m_resolution = IntVector2D(1280, 720);
+	IntVector2D m_resolution;
 	COLORREF* m_screen;
 	HDC m_gameWindow;
 	Map* m_levelMap;

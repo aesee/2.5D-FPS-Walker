@@ -22,6 +22,9 @@ struct Vector2D
 
 struct IntVector2D
 {
+	IntVector2D()
+		:x(0), y(0){}
+
 	IntVector2D(int32_t inX, int32_t inY)
 		:x(inX), y(inY) {}
 

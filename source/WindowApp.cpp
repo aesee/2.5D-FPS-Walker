@@ -6,9 +6,9 @@
 #include "Renderer.h"
 
 WindowApp::WindowApp()
-{
-	m_hInstance = GetModuleHandle(NULL);
-		
+	: m_hInstance(GetModuleHandle(NULL)),
+	m_hAccelTable(LoadAccelerators(m_hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS)))
+{	
 	// Register window class
 	{
 		WNDCLASSEXW wcex;
@@ -27,9 +27,7 @@ WindowApp::WindowApp()
 		wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 		RegisterClassExW(&wcex);
-	}
-		
-	m_hAccelTable = LoadAccelerators(m_hInstance, MAKEINTRESOURCE(IDC_SIMPLEFPS));
+	}	
 
 	m_hWnd = CreateWindowW(m_szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, m_hInstance, nullptr);
