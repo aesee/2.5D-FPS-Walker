@@ -13,20 +13,17 @@
 #pragma comment(linker, "/subsystem:windows /ENTRY:mainCRTStartup")
 #endif
 
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-
 int main()
 {
 	STARTUPINFO StartupInfo;
 	StartupInfo.dwFlags = 0;
 	GetStartupInfo(&StartupInfo);
 
-	HINSTANCE hInstance = GetModuleHandle(NULL);
+	static HINSTANCE hInstance = GetModuleHandle(NULL);
 
 	Renderer* renderer;
 	GameConfig& gameConfig = GameConfig::Get();	
-	Input input(&hInst);
+	Input input(&hInstance);
 
 	LPCWSTR szWindowClass = L"SimpleFPSGameWindow";
 	// Register window class
@@ -52,8 +49,6 @@ int main()
 
 	// Perform application initialization:
 	{
-		hInst = hInstance; // Store instance handle in our global variable
-
 		HWND hWnd = CreateWindowW(szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
