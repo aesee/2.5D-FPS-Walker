@@ -70,6 +70,7 @@ HINSTANCE* WindowApp::GetInstance()
 	return &m_hInstance;
 }
 
+/*
 Renderer* WindowApp::CreateRenderer(float FOV, float Depth)
 {
 	Renderer* renderer = new Renderer(GetDC(m_hWnd), FOV, Depth);
@@ -84,4 +85,24 @@ Renderer* WindowApp::CreateRenderer(float FOV, float Depth)
 	}
 
 	return renderer;
+}*/
+
+struct IntVector2D WindowApp::GetScreenSize()
+{
+	RECT rect;
+	if (GetWindowRect(m_hWnd, &rect))
+	{
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
+
+		return IntVector2D(width, height);
+	}
+
+	throw std::string("Can't get a size of the screen!");
+	return IntVector2D();
+}
+
+HDC WindowApp::GetDeviceContext()
+{
+	return GetDC(m_hWnd);
 }

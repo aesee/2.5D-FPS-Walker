@@ -17,6 +17,14 @@ void Renderer::SetScreenSize(int width, int height)
 	m_screen = new COLORREF[m_resolution.x * m_resolution.y];
 }
 
+void Renderer::SetScreenSize(IntVector2D& screenSize)
+{
+	m_resolution.x = screenSize.x;
+	m_resolution.y = screenSize.y;
+
+	m_screen = new COLORREF[m_resolution.x * m_resolution.y];
+}
+
 void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 {
 	//CreateScreenBuffer();

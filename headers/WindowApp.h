@@ -9,7 +9,8 @@ public:
 	bool IsUserWantsToExit();
 	int GetState() const;
 	HINSTANCE* GetInstance();
-	class Renderer* CreateRenderer(float FOV, float Depth);
+	struct IntVector2D GetScreenSize();
+	HDC GetDeviceContext();
 
 private:
 	LPCWSTR m_szWindowClass = L"SimpleFPSGameWindow";

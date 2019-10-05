@@ -19,8 +19,9 @@ int main()
 	
 	// Init map
 	Map map;
-	std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>(*window.CreateRenderer(gameConfig.FOV, gameConfig.Depth));
-	renderer->SetMap(&map);
+	Renderer renderer(window.GetDeviceContext(), gameConfig.FOV, gameConfig.Depth);
+	renderer.SetScreenSize(window.GetScreenSize());
+	renderer.SetMap(&map);
 
 	// Create player
 	Vector2D StartLocation = Vector2D(10.0f, 5.09f);
@@ -40,7 +41,7 @@ int main()
 		// Render
 		Vector2D PlayerPosition = player.GetPosition();
 		float PlayerRotation = player.GetRotation();
-		renderer->DrawFrame(PlayerPosition, PlayerRotation);
+		renderer.DrawFrame(PlayerPosition, PlayerRotation);
 	}
 
 	return window.GetState();

@@ -12,6 +12,7 @@ public:
 	~Renderer();
 
 	void SetScreenSize(int width, int height);
+	void SetScreenSize(IntVector2D& screenSize);
 	void SetMap(Map* map) { m_levelMap = map; }
 	void DrawFrame(Vector2D& playerPosition, float playerRotation);
 
