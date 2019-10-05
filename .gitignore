@@ -5,3 +5,6 @@ Debug/
 *.lib
 *.pdb
 *.pch
+*.sln
+*.vcxproj.user
+build/
