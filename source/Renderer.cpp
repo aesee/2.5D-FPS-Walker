@@ -99,9 +99,10 @@ void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 		}
 
 		// Calculate distance to ceiling and floor
-		int nCeiling = (int) floor(m_resolution.y / 2.0 - m_resolution.y / distanceToWall);
+		int nCeiling = round(m_resolution.y / 2 - m_resolution.y / distanceToWall);
 		int nFloor = m_resolution.y - nCeiling;
 
+		// TODO: draw a different walls!
 		// Shader walls based on distance
 		// Also funny thing about color:
 		// the order is backward so RGB is BGR
