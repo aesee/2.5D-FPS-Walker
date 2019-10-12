@@ -15,8 +15,8 @@ int main()
 {
 	WindowApp window;	
 	GameConfig& gameConfig = GameConfig::Get();	
-	Input input(window.GetInstance());
-	
+	Input input;
+
 	// Init map
 	Map map;
 	Renderer renderer(window.GetDeviceContext(), gameConfig.FOV, gameConfig.Depth);
@@ -25,7 +25,9 @@ int main()
 
 	// Create player
 	Vector2D StartLocation = Vector2D(10.0f, 5.09f);
-	Player player(StartLocation);
+	//Player player(StartLocation);
+	Player& player = gameConfig.GetCurrentPlayer();
+	player.SetPosition(StartLocation);
 
 	// Game loop:
 	while (true)
@@ -36,7 +38,7 @@ int main()
 		}
 
 		// Input
-		input.UpdateInput(gameConfig, player, map);
+		input.UpdateInput(map); // TODO : remove map from input
 
 		// Render
 		Vector2D PlayerPosition = player.GetPosition();

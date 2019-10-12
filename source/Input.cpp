@@ -1,120 +1,167 @@
 #include "Input.h"
 #include "Player.h"
 #include "GameConfig.h"
-#include "Map.h"
 #include "Resource.h"
+#include "Map.h"
 
-Input::InputKeys Input::inputKeys;
+// Command pattern
+namespace
+{
+	class IInputCommand
+	{
+	public:
+		virtual ~IInputCommand() {}
+		virtual void Execute(Player& player) = 0;
+		virtual void Undo(Player& player) = 0;
+	};
 
-Input::Input(HINSTANCE* inHInst)
-	:hInst(inHInst)
-{}
+	class MoveForwardCommand : public IInputCommand
+	{
+	public:
+		virtual ~MoveForwardCommand() override {};
+		virtual void Execute(Player& player) override
+		{
+			player.SetMoveStatus(1);
+		}
+		virtual void Undo(Player& player) override
+		{
+			player.SetMoveStatus(0);
+		}
+	};
 
-void Input::UpdateInput(GameConfig& gameConfig, Player& player, Map& map)
+	class MoveBackwardCommand : public IInputCommand
+	{
+	public:
+		virtual ~MoveBackwardCommand() override {};
+		virtual void Execute(Player& player) override
+		{
+			player.SetMoveStatus(-1);
+		}
+		virtual void Undo(Player& player) override
+		{
+			player.SetMoveStatus(0);
+		}
+	};
+
+	class TurnRightCommand : public IInputCommand
+	{
+	public:
+		virtual ~TurnRightCommand() override {};
+		virtual void Execute(Player& player) override
+		{
+			player.SetTurnStatus(1);
+		}
+		virtual void Undo(Player& player) override
+		{
+			player.SetTurnStatus(0);
+		}
+	};
+
+	class TurnLeftCommand : public IInputCommand
+	{
+	public:
+		virtual ~TurnLeftCommand() override {};
+		virtual void Execute(Player& player) override
+		{
+			player.SetTurnStatus(-1);
+		}
+		virtual void Undo(Player& player) override
+		{
+			player.SetTurnStatus(0);
+		}
+	};
+}
+
+void Input::UpdateInput(Map& map)
 {
 	tp2 = std::chrono::system_clock::now();
 	std::chrono::duration<float> elapsedTime = tp2 - tp1;
 	tp1 = tp2;
 	float fElapsedTime = elapsedTime.count();
 
-	if (inputKeys.A)
-	{
-		float newRotation = player.GetRotation() - (gameConfig.Speed * 0.75f) * fElapsedTime;
-		player.SetRotation(newRotation);
-	}
+	GameConfig& gameConfig = GameConfig::Get();
+	Player& player = gameConfig.GetCurrentPlayer();
 
-	if (inputKeys.D)
-	{
-		float newRotation = player.GetRotation() + (gameConfig.Speed * 0.75f) * fElapsedTime;
-		player.SetRotation(newRotation);
-	}
-
-	if (inputKeys.W)
+	if (player.GetMoveStatus() != 0)
 	{
 		Vector2D playerPosition = player.GetPosition();
 		float playerRotation = player.GetRotation();
 
 		float movementSpeed = gameConfig.Speed * fElapsedTime;
 		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
-		Vector2D newPosition = playerPosition + offsetPosition;
+		Vector2D newPosition = playerPosition + offsetPosition * player.GetMoveStatus();
 
-		if (!map.IsWallIn(round(newPosition.x), round(newPosition.y)))
+		if (!map.IsWallIn(static_cast<int>(round(newPosition.x)), static_cast<int>(round(newPosition.y))))
 		{
 			player.SetPosition(newPosition);
 		}
 	}
 
-	if (inputKeys.S)
+	if (player.GetTurnStatus() != 0)
 	{
-		Vector2D playerPosition = player.GetPosition();
-		float playerRotation = player.GetRotation();
-
-		float movementSpeed = gameConfig.Speed * fElapsedTime;
-		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
-		Vector2D newPosition = playerPosition - offsetPosition;
-
-		if (!map.IsWallIn(round(playerPosition.x), round(playerPosition.y)))
-		{
-			player.SetPosition(newPosition);
-		}
+		float newRotation = player.GetRotation() + (gameConfig.Speed * 0.75f) * player.GetTurnStatus() * fElapsedTime;
+		player.SetRotation(newRotation);
 	}
 }
 
 LRESULT CALLBACK Input::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	GameConfig& gameConfig = GameConfig::Get();
+	Controls& controls = gameConfig.GetControls();
+	
 	if (message == WM_KEYDOWN)
 	{
-		switch (wParam)
+		if (wParam == controls.turnLeft)
 		{
-		case 'A':
-		{
-			Input::inputKeys.A = true;
-			break;
+			TurnLeftCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
 		}
-		case 'D':
+
+		if (wParam == controls.turnRight)
 		{
-			Input::inputKeys.D = true;
-			break;
+			TurnRightCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
 		}
-		case 'W':
+
+		if (wParam == controls.moveForward)
 		{
-			Input::inputKeys.W = true;
-			break;
+			MoveForwardCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
 		}
-		case 'S':
+
+		if (wParam == controls.moveBackward)
 		{
-			Input::inputKeys.S = true;
-			break;
-		}
+			MoveBackwardCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
 		}
 
 		return 0;
 	}
 
-	if (message == WM_KEYUP || message == WM_KEYDOWN)
+	if (message == WM_KEYUP)
 	{
-		switch (wParam)
+		if (wParam == controls.turnLeft)
 		{
-		case 'A':
-		{
-			Input::inputKeys.A = false;
-			break;
+			TurnLeftCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
 		}
-		case 'D':
+
+		if (wParam == controls.turnRight)
 		{
-			Input::inputKeys.D = false;
-			break;
+			TurnRightCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
 		}
-		case 'W':
+
+		if (wParam == controls.moveForward)
 		{
-			Input::inputKeys.W = false;
-			break;
+			MoveForwardCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
 		}
-		case 'S':
+
+		if (wParam == controls.moveBackward)
 		{
-			Input::inputKeys.S = false;
-			break;
-		}
+			MoveBackwardCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
 		}
 
 		return 0;

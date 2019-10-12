@@ -18,6 +18,11 @@ struct Vector2D
 	{
 		return Vector2D(x - vector.x, y - vector.y);
 	}
+
+	Vector2D operator *(int value)
+	{
+		return Vector2D(x * value, y * value);
+	}
 };
 
 struct IntVector2D
