@@ -2,8 +2,9 @@
 #include <functional>
 #include <utility>
 #include "Resource.h"
-#include "Input.h"
+#include "InputCommand.h"
 #include "EngineLib.h"
+#include "Game.h"
 
 WindowApp::WindowApp()
 	: m_hInstance(GetModuleHandle(NULL)),
@@ -15,7 +16,7 @@ WindowApp::WindowApp()
 
 		wcex.cbSize = sizeof(WNDCLASSEX);
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
-		wcex.lpfnWndProc = Input::WndProc;
+		wcex.lpfnWndProc = WindowApp::WndProc;
 		wcex.cbClsExtra = 0;
 		wcex.cbWndExtra = 0;
 		wcex.hInstance = m_hInstance;
@@ -92,4 +93,83 @@ struct IntVector2D WindowApp::GetScreenSize()
 HDC WindowApp::GetDeviceContext()
 {
 	return GetDC(m_hWnd);
+}
+
+LRESULT WindowApp::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	if (message == WM_KEYDOWN)
+	{
+		Game& gameConfig = Game::Get();
+		Controls& controls = gameConfig.GetControls();
+
+		if (wParam == controls.turnLeft)
+		{
+			TurnLeftCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.turnRight)
+		{
+			TurnRightCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.moveForward)
+		{
+			MoveForwardCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.moveBackward)
+		{
+			MoveBackwardCommand Command;
+			Command.Execute(gameConfig.GetCurrentPlayer());
+		}
+
+		return 0;
+	}
+
+	if (message == WM_KEYUP)
+	{
+		Game& gameConfig = Game::Get();
+		Controls& controls = gameConfig.GetControls();
+
+		if (wParam == controls.turnLeft)
+		{
+			TurnLeftCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.turnRight)
+		{
+			TurnRightCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.moveForward)
+		{
+			MoveForwardCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
+		}
+
+		if (wParam == controls.moveBackward)
+		{
+			MoveBackwardCommand Command;
+			Command.Undo(gameConfig.GetCurrentPlayer());
+		}
+
+		return 0;
+	}
+
+	switch (message)
+	{
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProcW(hWnd, message, wParam, lParam);
+	}
+
+	return 0;
 }

@@ -12,6 +12,9 @@ public:
 	HDC GetDeviceContext();
 
 private:
+	static LRESULT WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+private:
 	LPCWSTR m_szWindowClass = L"SimpleFPSGameWindow";
 	HINSTANCE m_hInstance;
 	MSG m_msg;
