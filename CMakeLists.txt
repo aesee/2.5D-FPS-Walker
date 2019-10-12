@@ -5,14 +5,22 @@ project(FPSWalker)
 
 # Find all source files
 file (GLOB_RECURSE SRC_FILES
-	source/*.cpp
-	headers/*.h
+	Engine/headers/*.h
+	Engine/source/*.cpp
+	Engine/source/Input/*.cpp
+	Engine/source/Input/*.h
+	Engine/source/Renderer/*.cpp
+	Engine/source/Renderer/*.h
+	Engine/source/Types/*.cpp
+	Engine/source/Types/*.h
+	Engine/source/Windows/*.cpp
+	Engine/source/Windows/*.h
 )
-add_executable (FPSWalker ${SRC_FILES})
-include_directories("headers/")
+add_executable (Engine ${SRC_FILES})
+include_directories("Engine/headers/", "Engine/source")
 
 # Set startup project
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT FPSWalker)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
 # Group all cmake targets into the one folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

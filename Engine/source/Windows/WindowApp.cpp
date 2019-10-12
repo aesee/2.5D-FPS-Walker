@@ -2,7 +2,7 @@
 #include <functional>
 #include <utility>
 #include "Resource.h"
-#include "InputCommand.h"
+#include "Input/InputCommand.h"
 #include "EngineLib.h"
 #include "Game.h"
 

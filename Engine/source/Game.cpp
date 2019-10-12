@@ -1,8 +1,8 @@
 #include "Game.h"
 #include "Player.h"
-#include "Input.h"
-#include "WindowApp.h"
-#include "Renderer.h"
+#include "Input/Input.h"
+#include "Windows/WindowApp.h"
+#include "Renderer/Renderer.h"
 
 Game& Game::Get()
 {

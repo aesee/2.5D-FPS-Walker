@@ -1,7 +1,6 @@
 #include "Input.h"
 #include "Player.h"
 #include "Game.h"
-#include "Resource.h"
 #include "Map.h"
 
 void Input::UpdatePlayerMove(Map& map)
