@@ -16,11 +16,18 @@ file (GLOB_RECURSE SRC_FILES
 	Engine/source/Windows/*.cpp
 	Engine/source/Windows/*.h
 )
-add_executable (Engine ${SRC_FILES})
+add_library (Engine ${SRC_FILES})
 include_directories("Engine/headers/", "Engine/source")
 
+# Find all source files
+file (GLOB_RECURSE GAME_SRC_FILES
+	Game/*.cpp
+)
+add_executable (Game ${GAME_SRC_FILES})
+target_link_libraries(Game Engine)
+
 # Set startup project
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Game)
 # Group all cmake targets into the one folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
