@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "Colors.h"
 
 Renderer::~Renderer()
 {
@@ -99,23 +100,23 @@ void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 		}
 
 		// Calculate distance to ceiling and floor
-		int nCeiling = round(m_resolution.y / 2 - m_resolution.y / distanceToWall);
+		int nCeiling = static_cast<int> (round(m_resolution.y / 2 - m_resolution.y / distanceToWall));
 		int nFloor = m_resolution.y - nCeiling;
 
 		// TODO: draw a different walls!
 		// Shader walls based on distance
 		// Also funny thing about color:
 		// the order is backward so RGB is BGR
-		COLORREF nShade = RGB(0, 0, 0);
-		if (distanceToWall <= m_depth / 4.0f)			nShade = RGB(156, 0, 10);	// Very close	
-		else if (distanceToWall < m_depth / 3.0f)		nShade = RGB(133, 0, 9);
-		else if (distanceToWall < m_depth / 2.0f)		nShade = RGB(102, 0, 7);
-		else if (distanceToWall < m_depth)			nShade = RGB(79, 0, 5);
-		else											nShade = RGB(54, 0, 4);		// Too far away
+		COLORREF nShade = Colors::Black;
+		if (distanceToWall <= m_depth / 4.0f)			nShade = Colors::Blue;	// Very close	
+		else if (distanceToWall < m_depth / 3.0f)		nShade = Colors::MediumBlue;
+		else if (distanceToWall < m_depth / 2.0f)		nShade = Colors::DarkBlue;
+		else if (distanceToWall < m_depth)			nShade = Colors::Navy;
+		else											nShade = Colors::MidnightBlue;		// Too far away
 
 		if (bBoundary)
 		{
-			nShade = RGB(0, 0, 0);	// Black
+			nShade = Colors::Black;
 		}
 
 		for (int y = 0; y < m_resolution.y; y++)
@@ -125,7 +126,7 @@ void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 			// Each Row
 			if (y <= nCeiling)
 			{
-				SetPixel(pixel, RGB(0, 0, 0));
+				SetPixel(pixel, Colors::Black);
 			}
 			else if (y > nCeiling && y <= nFloor)
 			{
@@ -135,11 +136,11 @@ void Renderer::DrawFrame(Vector2D& playerPosition, float playerRotation)
 			{
 				// Shade floor based on distance
 				float b = 1.0f - (((float)y - m_resolution.y / 2.0f) / (m_resolution.y / 2.0f));
-				if (b < 0.25)		nShade = RGB(110, 110, 110);
-				else if (b < 0.5)	nShade = RGB(110, 110, 110);
-				else if (b < 0.75)	nShade = RGB(90, 90, 90);
-				else if (b < 0.9)	nShade = RGB(70, 70, 70);
-				else				nShade = RGB(50, 50, 50);
+				if (b < 0.25)		nShade = Colors::Grey(5);
+				else if (b < 0.5)	nShade = Colors::Grey(4);
+				else if (b < 0.75)	nShade = Colors::Grey(3);
+				else if (b < 0.9)	nShade = Colors::Grey(2);
+				else				nShade = Colors::Grey(1);
 				SetPixel(pixel, nShade);
 			}
 		}
