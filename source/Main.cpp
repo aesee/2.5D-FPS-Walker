@@ -1,10 +1,6 @@
-#include <memory>
-#include "WindowApp.h"
-#include "Renderer.h"
-#include "GameConfig.h"
+#include "Game.h"
 #include "Map.h"
 #include "Player.h"
-#include "Input.h"
 
 // Set main() as startup point for windows linker
 #ifdef _MSC_VER
@@ -13,38 +9,20 @@
 
 int main()
 {
-	WindowApp window;	
-	GameConfig& gameConfig = GameConfig::Get();	
-	Input input;
-
+	Game& game = Game::Get();	
+	
 	// Init map
-	Map map;
-	Renderer renderer(window.GetDeviceContext(), gameConfig.FOV, gameConfig.Depth);
-	renderer.SetScreenSize(window.GetScreenSize());
-	renderer.SetMap(&map);
+	Map testMap;
+	game.SetNewMap(&testMap);
 
 	// Create player
-	Vector2D StartLocation = Vector2D(10.0f, 5.09f);
-	//Player player(StartLocation);
-	Player& player = gameConfig.GetCurrentPlayer();
-	player.SetPosition(StartLocation);
+	Vector2D startLocation = Vector2D(10.0f, 5.09f);
+	Player& player = game.GetCurrentPlayer();
+	player.SetPosition(startLocation);
 
 	// Game loop:
-	while (true)
-	{
-		if (window.IsUserWantsToExit())
-		{
-			break;
-		}
+	while (game.Update())
+	{ }
 
-		// Input
-		input.UpdateInput(map); // TODO : remove map from input
-
-		// Render
-		Vector2D PlayerPosition = player.GetPosition();
-		float PlayerRotation = player.GetRotation();
-		renderer.DrawFrame(PlayerPosition, PlayerRotation);
-	}
-
-	return window.GetState();
+	return game.GetApplicationState();
 }

@@ -29,8 +29,12 @@ WindowApp::WindowApp()
 		RegisterClassExW(&wcex);
 	}	
 
+	auto Test = GetLastError();
+
 	m_hWnd = CreateWindowW(m_szWindowClass, L"Simple FPS Game", WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, m_hInstance, nullptr);
+
+	auto Test2 = GetLastError();
 
 	if (!m_hWnd)
 	{

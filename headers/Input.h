@@ -5,7 +5,7 @@
 class Input
 {
 public:
-	void UpdateInput(class Map& map);
+	void UpdatePlayerMove(class Map& map);
 	static LRESULT WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:

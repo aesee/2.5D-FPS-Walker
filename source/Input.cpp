@@ -1,6 +1,6 @@
 #include "Input.h"
 #include "Player.h"
-#include "GameConfig.h"
+#include "Game.h"
 #include "Resource.h"
 #include "Map.h"
 
@@ -72,14 +72,14 @@ namespace
 	};
 }
 
-void Input::UpdateInput(Map& map)
+void Input::UpdatePlayerMove(Map& map)
 {
 	tp2 = std::chrono::system_clock::now();
 	std::chrono::duration<float> elapsedTime = tp2 - tp1;
 	tp1 = tp2;
 	float fElapsedTime = elapsedTime.count();
 
-	GameConfig& gameConfig = GameConfig::Get();
+	Game& gameConfig = Game::Get();
 	Player& player = gameConfig.GetCurrentPlayer();
 
 	if (player.GetMoveStatus() != 0)
@@ -87,7 +87,7 @@ void Input::UpdateInput(Map& map)
 		Vector2D playerPosition = player.GetPosition();
 		float playerRotation = player.GetRotation();
 
-		float movementSpeed = gameConfig.Speed * fElapsedTime;
+		float movementSpeed = gameConfig.speed * fElapsedTime;
 		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
 		Vector2D newPosition = playerPosition + offsetPosition * player.GetMoveStatus();
 
@@ -99,18 +99,18 @@ void Input::UpdateInput(Map& map)
 
 	if (player.GetTurnStatus() != 0)
 	{
-		float newRotation = player.GetRotation() + (gameConfig.Speed * 0.75f) * player.GetTurnStatus() * fElapsedTime;
+		float newRotation = player.GetRotation() + (gameConfig.speed * 0.75f) * player.GetTurnStatus() * fElapsedTime;
 		player.SetRotation(newRotation);
 	}
 }
 
 LRESULT CALLBACK Input::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	GameConfig& gameConfig = GameConfig::Get();
-	Controls& controls = gameConfig.GetControls();
-	
+{	
 	if (message == WM_KEYDOWN)
 	{
+		Game& gameConfig = Game::Get();
+		Controls& controls = gameConfig.GetControls();
+
 		if (wParam == controls.turnLeft)
 		{
 			TurnLeftCommand Command;
@@ -140,6 +140,9 @@ LRESULT CALLBACK Input::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
 	if (message == WM_KEYUP)
 	{
+		Game& gameConfig = Game::Get();
+		Controls& controls = gameConfig.GetControls();
+
 		if (wParam == controls.turnLeft)
 		{
 			TurnLeftCommand Command;
