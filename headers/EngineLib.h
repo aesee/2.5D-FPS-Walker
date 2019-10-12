@@ -9,20 +9,9 @@ struct Vector2D
 	float x;
 	float y;
 
-	Vector2D operator +(Vector2D vector)
-	{
-		return Vector2D(x + vector.x, y + vector.y);
-	}
-
-	Vector2D operator -(Vector2D vector)
-	{
-		return Vector2D(x - vector.x, y - vector.y);
-	}
-
-	Vector2D operator *(int value)
-	{
-		return Vector2D(x * value, y * value);
-	}
+	Vector2D operator +(Vector2D vector);
+	Vector2D operator -(Vector2D vector);
+	Vector2D operator *(int value);
 };
 
 struct IntVector2D
@@ -36,13 +25,6 @@ struct IntVector2D
 	int32_t x;
 	int32_t y;
 
-	IntVector2D operator +(IntVector2D vector)
-	{
-		return IntVector2D(x + vector.x, y + vector.y);
-	}
-
-	IntVector2D operator -(IntVector2D vector)
-	{
-		return IntVector2D(x - vector.x, y - vector.y);
-	}
+	IntVector2D operator +(IntVector2D vector);
+	IntVector2D operator -(IntVector2D vector);
 };
