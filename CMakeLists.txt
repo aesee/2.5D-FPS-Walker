@@ -5,16 +5,8 @@ project(FPSWalker)
 
 # Find all source files
 file (GLOB_RECURSE SRC_FILES
-	Engine/headers/*.h
-	Engine/source/*.cpp
-	Engine/source/Input/*.cpp
-	Engine/source/Input/*.h
-	Engine/source/Renderer/*.cpp
-	Engine/source/Renderer/*.h
-	Engine/source/Types/*.cpp
-	Engine/source/Types/*.h
-	Engine/source/Windows/*.cpp
-	Engine/source/Windows/*.h
+	Engine/*.h
+	Engine/*.cpp
 )
 add_library (Engine ${SRC_FILES})
 include_directories("Engine/headers/", "Engine/source")

@@ -1,25 +1,11 @@
 #include "Map.h"
+#include "Tools/FileManager.h"
+#include <memory>
 
-Map::Map()
+Map::Map(std::string path)
 {
-	// Create Map of world space # = wall block, . = space
-	m_map.empty();
-	m_map += L"################";
-	m_map += L"#..............#";
-	m_map += L"#.......########";
-	m_map += L"#..............#";
-	m_map += L"#......##......#";
-	m_map += L"#......##......#";
-	m_map += L"#..............#";
-	m_map += L"###............#";
-	m_map += L"##.............#";
-	m_map += L"#......####..###";
-	m_map += L"#......#.......#";
-	m_map += L"#......#.......#";
-	m_map += L"#..............#";
-	m_map += L"#......#########";
-	m_map += L"#..............#";
-	m_map += L"################";
+	// Load map from resources
+	FileManager::ReadStringFromFile(path, m_map);
 }
 
 Map::~Map()

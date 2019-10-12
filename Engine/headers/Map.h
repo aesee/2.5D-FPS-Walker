@@ -5,7 +5,7 @@
 class Map
 {
 public:
-	Map();
+	Map(std::string path);
 	~Map();
 	Vector2D GetSize() { return m_mapSize; }
 	bool IsWallIn(int x, int y);

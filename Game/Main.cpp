@@ -12,7 +12,7 @@ int main()
 	Game& game = Game::Get();	
 	
 	// Init map
-	Map testMap;
+	Map testMap("../Levels/TestLevel1.lvl");
 	game.SetNewMap(&testMap);
 
 	// Create player
