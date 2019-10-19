@@ -1,6 +1,12 @@
 #include "Colors.h"
 
+const COLORREF Colors::White = RGB(255, 255, 255);
+
 const COLORREF Colors::Black = RGB(0, 0, 0);
+
+const COLORREF Colors::BlackCurrant = RGB(7, 0, 4);
+
+const COLORREF Colors::Nero = RGB(34, 34, 34);
 
 const COLORREF Colors::Blue = RGB(255, 0, 0);
 

@@ -305,13 +305,15 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				/* Calculate the Z coordinate for this point. (Only used for lighting.) */
 				int z = ((x - x1) * (tz2 - tz1) / (x2 - x1) + tz1) * 8;
 				/* Acquire the Y coordinates for our ceiling & floor for this X coordinate. Clamp them. */
-				int ya = (x - x1) * (y2a - y1a) / (x2 - x1) + y1a, cya = std::clamp(ya, ytop[x], ybottom[x]); // top
-				int yb = (x - x1) * (y2b - y1b) / (x2 - x1) + y1b, cyb = std::clamp(yb, ytop[x], ybottom[x]); // bottom
+				int ya = (x - x1) * (y2a - y1a) / (x2 - x1) + y1a;
+				int cya = std::clamp(ya, ytop[x], ybottom[x]); // top
+				int yb = (x - x1) * (y2b - y1b) / (x2 - x1) + y1b;
+				int cyb = std::clamp(yb, ytop[x], ybottom[x]); // bottom
 
 				/* Render ceiling: everything above this sector's ceiling height. */
-				DrawVerticalLine(x, ytop[x], cya - 1, 0x111111, 0x222222, 0x111111);
+				DrawVerticalLine(x, ytop[x], cya - 1, Colors::Black, Colors::Nero, Colors::Black);
 				/* Render floor: everything below this sector's floor height. */
-				DrawVerticalLine(x, cyb + 1, ybottom[x], 0x0000FF, 0x0000AA, 0x0000FF);
+				DrawVerticalLine(x, cyb + 1, ybottom[x], Colors::Blue, Colors::MidnightBlue, Colors::Blue);
 
 				/* Is there another sector behind this edge? */
 				if (neighbor >= 0)
@@ -320,7 +322,8 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 					int nya = (x - x1) * (ny2a - ny1a) / (x2 - x1) + ny1a, cnya = std::clamp(nya, ytop[x], ybottom[x]);
 					int nyb = (x - x1) * (ny2b - ny1b) / (x2 - x1) + ny1b, cnyb = std::clamp(nyb, ytop[x], ybottom[x]);
 					/* If our ceiling is higher than their ceiling, render upper wall */
-					unsigned r1 = 0x010101 * (255 - z), r2 = 0x040007 * (31 - z / 8);
+					unsigned r1 = Colors::White * (255 - z);
+					unsigned r2 = Colors::BlackCurrant * (31 - z / 8);
 					DrawVerticalLine(x, cya, cnya - 1, 0, x == x1 || x == x2 ? 0 : r1, 0); // Between our and their ceiling
 					ytop[x] = std::clamp(max(cya, cnya), ytop[x], screenHeight - 1);   // Shrink the remaining window below these ceilings
 					/* If our floor is lower than their floor, render bottom wall */
@@ -330,7 +333,7 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				else
 				{
 					/* There's no neighbor. Render wall from top (cya = ceiling level) to bottom (cyb = floor level). */
-					unsigned r = 0x010101 * (255 - z);
+					unsigned r = Colors::White * (255 - z);
 					DrawVerticalLine(x, cya, cyb, 0, x == x1 || x == x2 ? 0 : r, 0);
 				}
 			}
