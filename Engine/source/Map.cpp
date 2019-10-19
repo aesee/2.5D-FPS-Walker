@@ -27,7 +27,7 @@ Map::Map(std::string path)
 
 		m_playerStartPosition.x = std::stof(parameters[1]);
 		m_playerStartPosition.y = std::stof(parameters[2]);
-		m_playerStartPosition.z = 0;
+		m_playerStartPosition.z = 6;
 		m_playerStartRotation = std::stof(parameters[3]);
 	};
 

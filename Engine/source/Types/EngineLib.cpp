@@ -15,6 +15,11 @@ Vector2 Vector2::operator*(int value)
 	return Vector2(x * value, y * value);
 }
 
+float Vector2::CrossProduct(Vector2& Vector)
+{
+	return (x * Vector.y - Vector.x * y);
+}
+
 IntVector2D IntVector2D::operator+(IntVector2D vector)
 {
 	return IntVector2D(x + vector.x, y + vector.y);

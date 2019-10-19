@@ -31,4 +31,6 @@ private:
 	Map* m_levelMap;
 	float m_fov;
 	float m_depth;
+
+	int m_currentRenderingSector = 0;
 };

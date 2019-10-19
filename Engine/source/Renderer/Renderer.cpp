@@ -150,15 +150,13 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 	// Display Frame
 	MoveBufferToScreen();*/
 
-	const int W = GetScreenSize().x;
-	const int H = GetScreenSize().y;
+	const int screenWidth = GetScreenSize().x;
+	const int screenHeight = GetScreenSize().y;
 	const int NumSectors = 16;
-	const int currentSector = 0;
 
-#define hfov (0.73f*H)  // Affects the horizontal field of vision
-#define vfov (.2f*H)    // Affects the vertical field of vision
+	const float hfov = 0.73f*screenHeight;
+	const float vfov = 0.2f*screenHeight;
 
-	float playerHeght = 0;
 	float playerYaw = 0;
 
 	//////
@@ -168,19 +166,46 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 	NodeSector* head = queue;
 	NodeSector* tail = queue;
 
-	std::vector<int> ytop(W);
+	std::vector<int> ytop(screenWidth);
 	std::fill(ytop.begin(), ytop.end(), 0);
 
-	std::vector<int> ybottom(W);
+	std::vector<int> ybottom(screenWidth);
 	std::vector<int> renderedsectors(NumSectors);
-	for (unsigned x = 0; x < W; ++x) ybottom[x] = H - 1;
-	for (unsigned n = 0; n < NumSectors; ++n) renderedsectors[n] = 0;
+	for (unsigned x = 0; x < screenWidth; ++x)
+	{
+		ybottom[x] = screenHeight - 1;
+	}
+	for (unsigned n = 0; n < NumSectors; ++n)
+	{
+		renderedsectors[n] = 0;
+	}
+
+	/*const Sector* const sector = &m_levelMap->sectors[m_currentRenderingSector];
+	const Vector2* const vert = sector->vertex;
+#define min(a,b)             (((a) < (b)) ? (a) : (b)) // min: Choose smaller of two scalars.
+#define max(a,b)             (((a) > (b)) ? (a) : (b)) // max: Choose greater of two scalars.
+#define Overlap(a0,a1,b0,b1) (min(a0,a1) <= max(b0,b1) && min(b0,b1) <= max(a0,a1))
+#define vxs(x0,y0, x1,y1)    ((x0)*(y1) - (x1)*(y0))   // vxs: Vector cross product
+#define IntersectBox(x0,y0, x1,y1, x2,y2, x3,y3) (Overlap(x0,x1,x2,x3) && Overlap(y0,y1,y2,y3))
+#define PointSide(px,py, x0,y0, x1,y1) vxs((x1)-(x0), (y1)-(y0), (px)-(x0), (py)-(y0))
+	float px = playerPosition.x;
+	float py = playerPosition.y;
+	for (unsigned s = 0; s < sector->npoints; ++s)
+	{
+		if (sector->neighbors[s] >= 0
+			&& IntersectBox(px, py, px + dx, py + dy, vert[s + 0].x, vert[s + 0].y, vert[s + 1].x, vert[s + 1].y)
+			&& PointSide(px + dx, py + dy, vert[s + 0].x, vert[s + 0].y, vert[s + 1].x, vert[s + 1].y) < 0)
+		{
+			m_currentRenderingSector = sector->neighbors[s];
+			break;
+		}
+	}*/
 
 	/* Begin whole-screen rendering from where the player is. */
 	*head = { 
-		currentSector, 
+		m_currentRenderingSector,
 		0, 
-		W - 1 };
+		screenWidth - 1 };
 
 	if (++head == queue + MaxQueue) head = queue;
 
@@ -206,45 +231,56 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 			float vx2 = sect->vertex[s + 1].x - playerPosition.x, vy2 = sect->vertex[s + 1].y - playerPosition.y;
 			/* Rotate them around the player's view */
 			//float pcos = player.anglecos, psin = player.anglesin;
-			float pcos = std::acos(playerRotation), psin = std::asin(playerRotation);
+			float pcos = std::cos(playerRotation), psin = std::sin(playerRotation);
 			float tx1 = vx1 * psin - vy1 * pcos, tz1 = vx1 * pcos + vy1 * psin;
 			float tx2 = vx2 * psin - vy2 * pcos, tz2 = vx2 * pcos + vy2 * psin;
 			/* Is the wall at least partially in front of the player? */
-			if (tz1 <= 0 && tz2 <= 0) continue;
+			if (tz1 <= 0 && tz2 <= 0)
+			{
+				continue;
+			}
 			/* If it's partially behind the player, clip it against player's view frustrum */
 			if (tz1 <= 0 || tz2 <= 0)
 			{
-				auto Intersect = [](float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
+				auto Intersect = [](Vector2& v1, Vector2& v2, Vector2& v3, Vector2& v4)
 				{
-					#define vxs(x0,y0, x1,y1)    ((x0)*(y1) - (x1)*(y0))   // vxs: Vector cross product
-					return Vector2
-					{
-						vxs(vxs(x1, y1, x2, y2), (x1)-(x2), vxs(x3, y3, x4, y4), (x3)-(x4)) / vxs((x1)-(x2), (y1)-(y2), (x3)-(x4), (y3)-(y4)),
-							vxs(vxs(x1, y1, x2, y2), (y1)-(y2), vxs(x3, y3, x4, y4), (y3)-(y4)) / vxs((x1)-(x2), (y1)-(y2), (x3)-(x4), (y3)-(y4))
-					};
+					Vector2 vector1x = Vector2(v1.CrossProduct(v2), v1.x - v2.x);
+					Vector2 vector2x = Vector2(v3.CrossProduct(v4), v3.x - v4.x);
+					Vector2 vector1y = Vector2(v1.CrossProduct(v2), v1.y - v2.y);
+					Vector2 vector2y = Vector2(v3.CrossProduct(v4), v3.y - v4.y);
+
+					return Vector2(vector1x.CrossProduct(vector2x) / (v1 - v2).CrossProduct(v3 - v4),
+						vector1y.CrossProduct(vector2y) / (v1 - v2).CrossProduct(v3 - v4));
 				};
 
 				float nearz = 1e-4f, farz = 5, nearside = 1e-5f, farside = 20.f;
 				// Find an intersection between the wall and the approximate edges of player's view
-				Vector2 i1 = Intersect(tx1, tz1, tx2, tz2, -nearside, nearz, -farside, farz);
-				Vector2 i2 = Intersect(tx1, tz1, tx2, tz2, nearside, nearz, farside, farz);
+				Vector2 t1(tx1, tz1);
+				Vector2 t2(tx2, tz2);
+				Vector2 nearside1(-nearside, nearz);
+				Vector2 farside1(-farside, farz);
+				Vector2 nearside2(nearside, nearz);
+				Vector2 farside2(farside, farz);
+
+				Vector2 i1 = Intersect(t1, t2, nearside1, farside1);
+				Vector2 i2 = Intersect(t1, t2, nearside2, farside2);
 				if (tz1 < nearz) { if (i1.y > 0) { tx1 = i1.x; tz1 = i1.y; } else { tx1 = i2.x; tz1 = i2.y; } }
 				if (tz2 < nearz) { if (i1.y > 0) { tx2 = i1.x; tz2 = i1.y; } else { tx2 = i2.x; tz2 = i2.y; } }
 			}
 			/* Do perspective transformation */
-			float xscale1 = hfov / tz1, yscale1 = vfov / tz1;    int x1 = W / 2 - (int)(tx1 * xscale1);
-			float xscale2 = hfov / tz2, yscale2 = vfov / tz2;    int x2 = W / 2 - (int)(tx2 * xscale2);
+			float xscale1 = hfov / tz1, yscale1 = vfov / tz1;    int x1 = screenWidth / 2 - (int)(tx1 * xscale1);
+			float xscale2 = hfov / tz2, yscale2 = vfov / tz2;    int x2 = screenWidth / 2 - (int)(tx2 * xscale2);
 			if (x1 >= x2 || x2 < now.sx1 || x1 > now.sx2) continue; // Only render if it's visible
 			/* Acquire the floor and ceiling heights, relative to where the player's view is */
-			float yceil = sect->ceil - playerHeght;
-			float yfloor = sect->floor - playerHeght;
+			float yceil = sect->ceil - playerPosition.z;
+			float yfloor = sect->floor - playerPosition.z;
 			/* Check the edge type. neighbor=-1 means wall, other=boundary between two sectors. */
 			int neighbor = sect->neighbors[s];
 			float nyceil = 0, nyfloor = 0;
 			if (neighbor >= 0) // Is another sector showing through this portal?
 			{
-				nyceil = m_levelMap->sectors[neighbor].ceil - playerHeght;
-				nyfloor = m_levelMap->sectors[neighbor].floor - playerHeght;
+				nyceil = m_levelMap->sectors[neighbor].ceil - playerPosition.z;
+				nyfloor = m_levelMap->sectors[neighbor].floor - playerPosition.z;
 			}
 			/* Project our ceiling & floor heights into screen coordinates (Y coordinate) */
 			auto GetYaw = [&playerYaw](float y, float z)
@@ -252,15 +288,15 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				return static_cast<int> (y + z * playerYaw);
 			};
 
-			int y1a = H / 2 - (GetYaw(yceil, tz1) * yscale1);
-			int	y1b = H / 2 - (GetYaw(yfloor, tz1) * yscale1);
-			int y2a = H / 2 - (GetYaw(yceil, tz2) * yscale2);
-			int y2b = H / 2 - (GetYaw(yfloor, tz2) * yscale2);
+			int y1a = screenHeight / 2 - (GetYaw(yceil, tz1) * yscale1);
+			int	y1b = screenHeight / 2 - (GetYaw(yfloor, tz1) * yscale1);
+			int y2a = screenHeight / 2 - (GetYaw(yceil, tz2) * yscale2);
+			int y2b = screenHeight / 2 - (GetYaw(yfloor, tz2) * yscale2);
 			/* The same for the neighboring sector */
-			int ny1a = H / 2 - (GetYaw(nyceil, tz1) * yscale1); 
-			int ny1b = H / 2 - (GetYaw(nyfloor, tz1) * yscale1);
-			int ny2a = H / 2 - (GetYaw(nyceil, tz2) * yscale2); 
-			int ny2b = H / 2 - (GetYaw(nyfloor, tz2) * yscale2);
+			int ny1a = screenHeight / 2 - (GetYaw(nyceil, tz1) * yscale1); 
+			int ny1b = screenHeight / 2 - (GetYaw(nyfloor, tz1) * yscale1);
+			int ny2a = screenHeight / 2 - (GetYaw(nyceil, tz2) * yscale2); 
+			int ny2b = screenHeight / 2 - (GetYaw(nyfloor, tz2) * yscale2);
 
 			/* Render the wall. */
 			int beginx = max(x1, now.sx1), endx = min(x2, now.sx2);
@@ -286,7 +322,7 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 					/* If our ceiling is higher than their ceiling, render upper wall */
 					unsigned r1 = 0x010101 * (255 - z), r2 = 0x040007 * (31 - z / 8);
 					DrawVerticalLine(x, cya, cnya - 1, 0, x == x1 || x == x2 ? 0 : r1, 0); // Between our and their ceiling
-					ytop[x] = std::clamp(max(cya, cnya), ytop[x], H - 1);   // Shrink the remaining window below these ceilings
+					ytop[x] = std::clamp(max(cya, cnya), ytop[x], screenHeight - 1);   // Shrink the remaining window below these ceilings
 					/* If our floor is lower than their floor, render bottom wall */
 					DrawVerticalLine(x, cnyb + 1, cyb, 0, x == x1 || x == x2 ? 0 : r2, 0); // Between their and our floor
 					ybottom[x] = std::clamp(min(cyb, cnyb), 0, ybottom[x]); // Shrink the remaining window above these floors

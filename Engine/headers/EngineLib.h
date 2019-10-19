@@ -12,6 +12,8 @@ struct Vector2
 	float x;
 	float y;
 
+	float CrossProduct(Vector2& Vector);
+
 	Vector2 operator +(Vector2 vector);
 	Vector2 operator -(Vector2 vector);
 	Vector2 operator *(int value);
