@@ -101,15 +101,19 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 		/* Render each wall of this sector that is facing towards player. */
 		for (unsigned s = 0; s < sector->npoints; ++s)
 		{
-			/* Acquire the x,y coordinates of the two endpoints (vertices) of this edge of the sector */
-			Vector2 endpoint1(sector->vertex[s + 0].x - playerPosition.x, sector->vertex[s + 0].y - playerPosition.y);
-			Vector2 endpoint2(sector->vertex[s + 1].x - playerPosition.x, sector->vertex[s + 1].y - playerPosition.y);
-			/* Rotate them around the player's view */
-			float pcos = std::cos(playerRotation);
-			float psin = std::sin(playerRotation);
+			// Acquire transformed coordinates of two endpoints (vertices) of this edge of the sector 
+			Vector2 transformedPoint1, transformedPoint2;
+			{
+				// Acquire coordinates of original endpoints (vertices)
+				Vector2 endpoint1(sector->vertex[s + 0].x - playerPosition.x, sector->vertex[s + 0].y - playerPosition.y);
+				Vector2 endpoint2(sector->vertex[s + 1].x - playerPosition.x, sector->vertex[s + 1].y - playerPosition.y);
+				/* Rotate them around the player's view */
+				float pcos = std::cos(playerRotation);
+				float psin = std::sin(playerRotation);
 
-			Vector2 transformedPoint1(endpoint1.x * psin - endpoint1.y * pcos, endpoint1.x * pcos + endpoint1.y * psin);
-			Vector2 transformedPoint2(endpoint2.x * psin - endpoint2.y * pcos, endpoint2.x * pcos + endpoint2.y * psin);
+				transformedPoint1 = Vector2(endpoint1.x * psin - endpoint1.y * pcos, endpoint1.x * pcos + endpoint1.y * psin);
+				transformedPoint2 = Vector2(endpoint2.x * psin - endpoint2.y * pcos, endpoint2.x * pcos + endpoint2.y * psin);
+			}
 			/* Is the wall at least partially in front of the player? */
 			if (transformedPoint1.y <= 0 && transformedPoint2.y <= 0)
 			{
@@ -149,14 +153,14 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 					}
 				}
 			}
-			/* Do perspective transformation */
+			// Project onto the screen
 			Vector2 scale1(m_fov.x / transformedPoint1.y, m_fov.y / transformedPoint1.y);
-			int x1 = GetScreenSize().x / 2 - (int)(transformedPoint1.x * scale1.x);
+			int projection1 = GetScreenSize().x / 2 - (int)(transformedPoint1.x * scale1.x);
 			Vector2 scale2(m_fov.x / transformedPoint2.y, m_fov.y / transformedPoint2.y);
-			int x2 = GetScreenSize().x / 2 - (int)(transformedPoint2.x * scale2.x);
-			if (x1 >= x2 || x2 < currentNode.sx1 || x1 > currentNode.sx2) 
+			int projection2 = GetScreenSize().x / 2 - (int)(transformedPoint2.x * scale2.x);
+			if (projection1 >= projection2 || projection2 < currentNode.sx1 || projection1 > currentNode.sx2) 
 			{
-				continue; // Only render if it's visible
+				continue; // render if it's visible
 			}
 			/* Acquire the floor and ceiling heights, relative to where the player's view is */
 			float yceil = sector->ceil - playerPosition.z;
@@ -187,16 +191,16 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 			int ny2b = GetScreenSize().y / 2 - (GetYaw(nyfloor, transformedPoint2.y) * scale2.y);
 
 			/* Render the wall. */
-			int beginx = max(x1, currentNode.sx1);
-			int endx = min(x2, currentNode.sx2);
+			int beginx = max(projection1, currentNode.sx1);
+			int endx = min(projection2, currentNode.sx2);
 			for (int x = beginx; x <= endx; ++x)
 			{
 				/* Calculate the Z coordinate for this point. (Only used for lighting.) */
-				int z = ((x - x1) * (transformedPoint2.y - transformedPoint1.y) / (x2 - x1) + transformedPoint1.y) * 8;
+				int z = ((x - projection1) * (transformedPoint2.y - transformedPoint1.y) / (projection2 - projection1) + transformedPoint1.y) * 8;
 				/* Acquire the Y coordinates for our ceiling & floor for this X coordinate. Clamp them. */
-				int ya = (x - x1) * (y2a - y1a) / (x2 - x1) + y1a;
+				int ya = (x - projection1) * (y2a - y1a) / (projection2 - projection1) + y1a;
 				int cya = std::clamp(ya, ytop[x], ybottom[x]); // top
-				int yb = (x - x1) * (y2b - y1b) / (x2 - x1) + y1b;
+				int yb = (x - projection1) * (y2b - y1b) / (projection2 - projection1) + y1b;
 				int cyb = std::clamp(yb, ytop[x], ybottom[x]); // bottom
 
 				/* Render ceiling: everything above this sector's ceiling height. */
@@ -208,22 +212,22 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				if (neighbor >= 0)
 				{
 					/* Same for _their_ floor and ceiling */
-					int nya = (x - x1) * (ny2a - ny1a) / (x2 - x1) + ny1a, cnya = std::clamp(nya, ytop[x], ybottom[x]);
-					int nyb = (x - x1) * (ny2b - ny1b) / (x2 - x1) + ny1b, cnyb = std::clamp(nyb, ytop[x], ybottom[x]);
+					int nya = (x - projection1) * (ny2a - ny1a) / (projection2 - projection1) + ny1a, cnya = std::clamp(nya, ytop[x], ybottom[x]);
+					int nyb = (x - projection1) * (ny2b - ny1b) / (projection2 - projection1) + ny1b, cnyb = std::clamp(nyb, ytop[x], ybottom[x]);
 					/* If our ceiling is higher than their ceiling, render upper wall */
 					unsigned r1 = Colors::White * (255 - z);
 					unsigned r2 = Colors::BlackCurrant * (31 - z / 8);
-					DrawVerticalLine(x, cya, cnya - 1, 0, x == x1 || x == x2 ? 0 : r1, 0); // Between our and their ceiling
+					DrawVerticalLine(x, cya, cnya - 1, 0, x == projection1 || x == projection2 ? 0 : r1, 0); // Between our and their ceiling
 					ytop[x] = std::clamp(max(cya, cnya), ytop[x], GetScreenSize().y - 1);   // Shrink the remaining window below these ceilings
 					/* If our floor is lower than their floor, render bottom wall */
-					DrawVerticalLine(x, cnyb + 1, cyb, 0, x == x1 || x == x2 ? 0 : r2, 0); // Between their and our floor
+					DrawVerticalLine(x, cnyb + 1, cyb, 0, x == projection1 || x == projection2 ? 0 : r2, 0); // Between their and our floor
 					ybottom[x] = std::clamp(min(cyb, cnyb), 0, ybottom[x]); // Shrink the remaining window above these floors
 				}
 				else
 				{
 					/* There's no neighbor. Render wall from top (cya = ceiling level) to bottom (cyb = floor level). */
 					unsigned r = Colors::White * (255 - z);
-					DrawVerticalLine(x, cya, cyb, 0, x == x1 || x == x2 ? 0 : r, 0);
+					DrawVerticalLine(x, cya, cyb, 0, x == projection1 || x == projection2 ? 0 : r, 0);
 				}
 			}
 			/* Schedule the neighboring sector for rendering within the window formed by this wall. */
