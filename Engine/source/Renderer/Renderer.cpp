@@ -29,127 +29,6 @@ void Renderer::SetScreenSize(IntVector2D& screenSize)
 
 void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 {
-	/*//CreateScreenBuffer();
-
-	// Find a walls around
-	for (int x = 0; x < m_resolution.x; x++)
-	{
-		// For each column, calculate the projected ray angle into world space
-		float rayAngle = (playerRotation - m_fov / 2.0f) + ((float)x / m_resolution.x) * m_fov;
-
-		// Find distance to wall
-		float stepSize = 0.1f;		  // Increment size for ray casting, decrease to increase
-		float distanceToWall = 0.0f; //                                      resolution
-
-		bool bHitWall = false;		// Set when ray hits wall block
-		bool bBoundary = false;		// Set when ray hits boundary between two wall blocks
-
-		float eyeX = sinf(rayAngle); // Unit vector for ray in player space
-		float eyeY = cosf(rayAngle);
-
-		// Incrementally cast ray from player, along ray angle, testing for
-		// intersection with a block
-		while (!bHitWall && distanceToWall < m_depth)
-		{
-			distanceToWall += stepSize;
-			int testX = (int)(playerPosition.x + eyeX * distanceToWall);
-			int testY = (int)(playerPosition.y + eyeY * distanceToWall);
-
-			// Test if ray is out of bounds
-			if (testX < 0 || testX >= m_levelMap->GetSize().x || testY < 0 || testY >= m_levelMap->GetSize().y)
-			{
-				bHitWall = true;			// Just set distance to maximum depth
-				distanceToWall = m_depth;
-			}
-			else
-			{
-				// Ray is inbounds so test to see if the ray cell is a wall block
-				if (m_levelMap->IsWallIn(testX, testY))
-				{
-					// Ray has hit wall
-					bHitWall = true;
-
-					// To highlight tile boundaries, cast a ray from each corner
-					// of the tile, to the player. The more coincident this ray
-					// is to the rendering ray, the closer we are to a tile
-					// boundary, which we'll shade to add detail to the walls
-					std::vector<std::pair<float, float>> p;
-
-					// Test each corner of hit tile, storing the distance from
-					// the player, and the calculated dot product of the two rays
-					for (int tx = 0; tx < 2; tx++)
-						for (int ty = 0; ty < 2; ty++)
-						{
-							// Angle of corner to eye
-							float vy = (float)testY + ty - playerPosition.y;
-							float vx = (float)testX + tx - playerPosition.x;
-							float d = sqrt(vx*vx + vy * vy);
-							float dot = (eyeX * vx / d) + (eyeY * vy / d);
-							p.push_back(std::make_pair(d, dot));
-						}
-
-					// Sort Pairs from closest to farthest
-					sort(p.begin(), p.end(), [](const std::pair<float, float> &left, const std::pair<float, float> &right) {return left.first < right.first; });
-
-					// First two/three are closest (we will never see all four)
-					float bound = 0.01f;
-					bBoundary = acos(p.at(0).second) < bound ||
-						acos(p.at(1).second) < bound ||
-						acos(p.at(2).second) < bound;
-				}
-			}
-		}
-
-		// Calculate distance to ceiling and floor
-		int nCeiling = static_cast<int> (round(m_resolution.y / 2 - m_resolution.y / distanceToWall));
-		int nFloor = m_resolution.y - nCeiling;
-
-		// TODO: draw a different walls!
-		// Shader walls based on distance
-		// Also funny thing about color:
-		// the order is backward so RGB is BGR
-		COLORREF nShade = Colors::Black;
-		if (distanceToWall <= m_depth / 4.0f)			nShade = Colors::Blue;	// Very close
-		else if (distanceToWall < m_depth / 3.0f)		nShade = Colors::MediumBlue;
-		else if (distanceToWall < m_depth / 2.0f)		nShade = Colors::DarkBlue;
-		else if (distanceToWall < m_depth)			nShade = Colors::Navy;
-		else											nShade = Colors::MidnightBlue;		// Too far away
-
-		if (bBoundary)
-		{
-			nShade = Colors::Black;
-		}
-
-		for (int y = 0; y < m_resolution.y; y++)
-		{
-			int pixel = static_cast<int>(y*m_resolution.x + x);
-
-			// Each Row
-			if (y <= nCeiling)
-			{
-				SetPixel(pixel, Colors::Black);
-			}
-			else if (y > nCeiling && y <= nFloor)
-			{
-				SetPixel(pixel, nShade);
-			}
-			else // Floor
-			{
-				// Shade floor based on distance
-				float b = 1.0f - (((float)y - m_resolution.y / 2.0f) / (m_resolution.y / 2.0f));
-				if (b < 0.25)		nShade = Colors::Grey(5);
-				else if (b < 0.5)	nShade = Colors::Grey(4);
-				else if (b < 0.75)	nShade = Colors::Grey(3);
-				else if (b < 0.9)	nShade = Colors::Grey(2);
-				else				nShade = Colors::Grey(1);
-				SetPixel(pixel, nShade);
-			}
-		}
-	}
-
-	// Display Frame
-	MoveBufferToScreen();*/
-
 	const int screenWidth = GetScreenSize().x;
 	const int screenHeight = GetScreenSize().y;
 	const int NumSectors = 16;
@@ -170,15 +49,10 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 	std::fill(ytop.begin(), ytop.end(), 0);
 
 	std::vector<int> ybottom(screenWidth);
+	std::fill(ybottom.begin(), ybottom.end(), screenHeight - 1);
+
 	std::vector<int> renderedsectors(NumSectors);
-	for (unsigned x = 0; x < screenWidth; ++x)
-	{
-		ybottom[x] = screenHeight - 1;
-	}
-	for (unsigned n = 0; n < NumSectors; ++n)
-	{
-		renderedsectors[n] = 0;
-	}
+	std::fill(renderedsectors.begin(), renderedsectors.end(), 0);
 
 	/*const Sector* const sector = &m_levelMap->sectors[m_currentRenderingSector];
 	const Vector2* const vert = sector->vertex;
@@ -207,33 +81,38 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 		0, 
 		screenWidth - 1 };
 
-	if (++head == queue + MaxQueue) head = queue;
+	if (++head == queue + MaxQueue)
+	{
+		head = queue;
+	}
 
 	do {
 		/* Pick a sector & slice from the queue to draw */
-		const struct NodeSector now = *tail;
+		const NodeSector currentNode = *tail;
 		if (++tail == queue + MaxQueue)
 		{
 			tail = queue;
 		}
 
-		if (renderedsectors[now.sectorno] & 0x21)
+		if (currentNode.sectorno > renderedsectors.size() - 1)
 		{
-			continue; // Odd = still rendering, 0x20 = give up
+			continue;
 		}
-		++renderedsectors[now.sectorno];
-		const Sector* const sect = &m_levelMap->sectors[now.sectorno];
+		++renderedsectors[currentNode.sectorno];
+		const Sector* const sector = &m_levelMap->sectors[currentNode.sectorno];
 		/* Render each wall of this sector that is facing towards player. */
-		for (unsigned s = 0; s < sect->npoints; ++s)
+		for (unsigned s = 0; s < sector->npoints; ++s)
 		{
 			/* Acquire the x,y coordinates of the two endpoints (vertices) of this edge of the sector */
-			float vx1 = sect->vertex[s + 0].x - playerPosition.x, vy1 = sect->vertex[s + 0].y - playerPosition.y;
-			float vx2 = sect->vertex[s + 1].x - playerPosition.x, vy2 = sect->vertex[s + 1].y - playerPosition.y;
+			Vector2 endpoint1(sector->vertex[s + 0].x - playerPosition.x, sector->vertex[s + 0].y - playerPosition.y);
+			Vector2 endpoint2(sector->vertex[s + 1].x - playerPosition.x, sector->vertex[s + 1].y - playerPosition.y);
 			/* Rotate them around the player's view */
 			//float pcos = player.anglecos, psin = player.anglesin;
 			float pcos = std::cos(playerRotation), psin = std::sin(playerRotation);
-			float tx1 = vx1 * psin - vy1 * pcos, tz1 = vx1 * pcos + vy1 * psin;
-			float tx2 = vx2 * psin - vy2 * pcos, tz2 = vx2 * pcos + vy2 * psin;
+			float tx1 = endpoint1.x * psin - endpoint1.y * pcos;
+			float tz1 = endpoint1.x * pcos + endpoint1.y * psin;
+			float tx2 = endpoint2.x * psin - endpoint2.y * pcos;
+			float tz2 = endpoint2.x * pcos + endpoint2.y * psin;
 			/* Is the wall at least partially in front of the player? */
 			if (tz1 <= 0 && tz2 <= 0)
 			{
@@ -264,19 +143,48 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 
 				Vector2 i1 = Intersect(t1, t2, nearside1, farside1);
 				Vector2 i2 = Intersect(t1, t2, nearside2, farside2);
-				if (tz1 < nearz) { if (i1.y > 0) { tx1 = i1.x; tz1 = i1.y; } else { tx1 = i2.x; tz1 = i2.y; } }
-				if (tz2 < nearz) { if (i1.y > 0) { tx2 = i1.x; tz2 = i1.y; } else { tx2 = i2.x; tz2 = i2.y; } }
+				if (tz1 < nearz) 
+				{ 
+					if (i1.y > 0) 
+					{ 
+						tx1 = i1.x; 
+						tz1 = i1.y; 
+					} 
+					else 
+					{ 
+						tx1 = i2.x; 
+						tz1 = i2.y; } 
+				}
+				if (tz2 < nearz)
+				{ 
+					if (i1.y > 0) 
+					{ 
+						tx2 = i1.x; 
+						tz2 = i1.y; 
+					} 
+					else 
+					{ 
+						tx2 = i2.x; 
+						tz2 = i2.y; 
+					} 
+				}
 			}
 			/* Do perspective transformation */
-			float xscale1 = hfov / tz1, yscale1 = vfov / tz1;    int x1 = screenWidth / 2 - (int)(tx1 * xscale1);
-			float xscale2 = hfov / tz2, yscale2 = vfov / tz2;    int x2 = screenWidth / 2 - (int)(tx2 * xscale2);
-			if (x1 >= x2 || x2 < now.sx1 || x1 > now.sx2) continue; // Only render if it's visible
+			Vector2 scale1(hfov / tz1, vfov / tz1);
+			int x1 = screenWidth / 2 - (int)(tx1 * scale1.x);
+			Vector2 scale2(hfov / tz2, vfov / tz2);
+			int x2 = screenWidth / 2 - (int)(tx2 * scale2.x);
+			if (x1 >= x2 || x2 < currentNode.sx1 || x1 > currentNode.sx2) 
+			{
+				continue; // Only render if it's visible
+			}
 			/* Acquire the floor and ceiling heights, relative to where the player's view is */
-			float yceil = sect->ceil - playerPosition.z;
-			float yfloor = sect->floor - playerPosition.z;
+			float yceil = sector->ceil - playerPosition.z;
+			float yfloor = sector->floor - playerPosition.z;
 			/* Check the edge type. neighbor=-1 means wall, other=boundary between two sectors. */
-			int neighbor = sect->neighbors[s];
-			float nyceil = 0, nyfloor = 0;
+			int neighbor = sector->neighbors[s];
+			float nyceil = 0; 
+			float nyfloor = 0;
 			if (neighbor >= 0) // Is another sector showing through this portal?
 			{
 				nyceil = m_levelMap->sectors[neighbor].ceil - playerPosition.z;
@@ -288,18 +196,19 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				return static_cast<int> (y + z * playerYaw);
 			};
 
-			int y1a = screenHeight / 2 - (GetYaw(yceil, tz1) * yscale1);
-			int	y1b = screenHeight / 2 - (GetYaw(yfloor, tz1) * yscale1);
-			int y2a = screenHeight / 2 - (GetYaw(yceil, tz2) * yscale2);
-			int y2b = screenHeight / 2 - (GetYaw(yfloor, tz2) * yscale2);
+			int y1a = screenHeight / 2 - (GetYaw(yceil, tz1) * scale1.y);
+			int	y1b = screenHeight / 2 - (GetYaw(yfloor, tz1) * scale1.y);
+			int y2a = screenHeight / 2 - (GetYaw(yceil, tz2) * scale2.y);
+			int y2b = screenHeight / 2 - (GetYaw(yfloor, tz2) * scale2.y);
 			/* The same for the neighboring sector */
-			int ny1a = screenHeight / 2 - (GetYaw(nyceil, tz1) * yscale1); 
-			int ny1b = screenHeight / 2 - (GetYaw(nyfloor, tz1) * yscale1);
-			int ny2a = screenHeight / 2 - (GetYaw(nyceil, tz2) * yscale2); 
-			int ny2b = screenHeight / 2 - (GetYaw(nyfloor, tz2) * yscale2);
+			int ny1a = screenHeight / 2 - (GetYaw(nyceil, tz1) * scale1.y); 
+			int ny1b = screenHeight / 2 - (GetYaw(nyfloor, tz1) * scale1.y);
+			int ny2a = screenHeight / 2 - (GetYaw(nyceil, tz2) * scale2.y); 
+			int ny2b = screenHeight / 2 - (GetYaw(nyfloor, tz2) * scale2.y);
 
 			/* Render the wall. */
-			int beginx = max(x1, now.sx1), endx = min(x2, now.sx2);
+			int beginx = max(x1, currentNode.sx1);
+			int endx = min(x2, currentNode.sx2);
 			for (int x = beginx; x <= endx; ++x)
 			{
 				/* Calculate the Z coordinate for this point. (Only used for lighting.) */
@@ -349,7 +258,7 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				if (++head == queue + MaxQueue) head = queue;
 			}
 		} // for s in sector's edges
-		++renderedsectors[now.sectorno];
+		++renderedsectors[currentNode.sectorno];
 	} while (head != tail); // render any other queued sectors
 
 	// Display Frame
