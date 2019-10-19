@@ -1,18 +1,18 @@
 #include "EngineLib.h"
 
-Vector2D Vector2D::operator+(Vector2D vector)
+Vector2 Vector2::operator+(Vector2 vector)
 {
-	return Vector2D(x + vector.x, y + vector.y);
+	return Vector2(x + vector.x, y + vector.y);
 }
 
-Vector2D Vector2D::operator-(Vector2D vector)
+Vector2 Vector2::operator-(Vector2 vector)
 {
-	return Vector2D(x - vector.x, y - vector.y);
+	return Vector2(x - vector.x, y - vector.y);
 }
 
-Vector2D Vector2D::operator*(int value)
+Vector2 Vector2::operator*(int value)
 {
-	return Vector2D(x * value, y * value);
+	return Vector2(x * value, y * value);
 }
 
 IntVector2D IntVector2D::operator+(IntVector2D vector)
@@ -23,4 +23,22 @@ IntVector2D IntVector2D::operator+(IntVector2D vector)
 IntVector2D IntVector2D::operator-(IntVector2D vector)
 {
 	return IntVector2D(x - vector.x, y - vector.y);
+}
+
+Vector3::Vector3()
+	: x(0), y(0), z(0)
+{ }
+
+Vector3::Vector3(float inX, float inY, float inZ)
+	: x(inX), y(inY), z(inZ)
+{ }
+
+Vector3 Vector3::operator+(Vector3 vector)
+{
+	return Vector3(x + vector.x, y + vector.y, z + vector.z);
+}
+
+Vector3 Vector3::operator*(int value)
+{
+	return Vector3(x * value, y * value, z * value);
 }

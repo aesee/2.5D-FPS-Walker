@@ -15,11 +15,6 @@ int main()
 	Map testMap("../Levels/TestLevel1.lvl");
 	game.SetNewMap(&testMap);
 
-	// Create player
-	Vector2D startLocation = Vector2D(10.0f, 5.09f);
-	Player& player = game.GetCurrentPlayer();
-	player.SetPosition(startLocation);
-
 	// Game loop:
 	while (game.Update())
 	{ }

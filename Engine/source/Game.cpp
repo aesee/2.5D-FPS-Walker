@@ -3,6 +3,7 @@
 #include "Input/Input.h"
 #include "Windows/WindowApp.h"
 #include "Renderer/Renderer.h"
+#include "Map.h"
 
 Game& Game::Get()
 {
@@ -31,7 +32,7 @@ bool Game::Update()
 	m_input->UpdatePlayerMove(*m_map); // TODO : remove map from input
 
 	// Render
-	Vector2D playerPosition = m_player->GetPosition();
+	Vector3 playerPosition = m_player->GetPosition();
 	float playerRotation = m_player->GetRotation();
 	m_renderer->DrawFrame(playerPosition, playerRotation);
 
@@ -47,6 +48,9 @@ void Game::SetNewMap(Map* map)
 {
 	m_map = map;
 	m_renderer->SetMap(map);
+
+	m_player->SetPosition(m_map->GetPlayerStartPosition());
+	m_player->SetRotation(m_map->GetPlayerStartRotation());
 }
 
 Game::Game()

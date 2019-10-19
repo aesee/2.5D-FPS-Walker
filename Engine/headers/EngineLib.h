@@ -1,17 +1,20 @@
 #pragma once
 #include "stdint.h"
 
-struct Vector2D
+struct Vector2
 {
-	Vector2D(float inX, float inY)
+	Vector2()
+		: x(0), y(0) {}
+
+	Vector2(float inX, float inY)
 		: x(inX), y(inY) {}
 
 	float x;
 	float y;
 
-	Vector2D operator +(Vector2D vector);
-	Vector2D operator -(Vector2D vector);
-	Vector2D operator *(int value);
+	Vector2 operator +(Vector2 vector);
+	Vector2 operator -(Vector2 vector);
+	Vector2 operator *(int value);
 };
 
 struct IntVector2D
@@ -27,4 +30,17 @@ struct IntVector2D
 
 	IntVector2D operator +(IntVector2D vector);
 	IntVector2D operator -(IntVector2D vector);
+};
+
+struct Vector3
+{
+	Vector3();
+	Vector3(float inX, float inY, float inZ);
+
+	float x;
+	float y;
+	float z;
+
+	Vector3 operator *(int value);
+	Vector3 operator +(Vector3 vector);
 };

@@ -15,12 +15,12 @@ void Input::UpdatePlayerMove(Map& map)
 
 	if (player.GetMoveStatus() != 0)
 	{
-		Vector2D playerPosition = player.GetPosition();
+		Vector3 playerPosition = player.GetPosition();
 		float playerRotation = player.GetRotation();
 
 		float movementSpeed = gameConfig.speed * fElapsedTime;
-		Vector2D offsetPosition = Vector2D(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed);
-		Vector2D newPosition = playerPosition + offsetPosition * player.GetMoveStatus();
+		Vector3 offsetPosition = Vector3(sinf(playerRotation) * movementSpeed, cosf(playerRotation) * movementSpeed, playerPosition.z);
+		Vector3 newPosition = playerPosition + offsetPosition * player.GetMoveStatus();
 
 		if (!map.IsWallIn(static_cast<int>(round(newPosition.x)), static_cast<int>(round(newPosition.y))))
 		{
