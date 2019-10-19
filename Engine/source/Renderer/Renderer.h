@@ -7,8 +7,7 @@ class Map;
 class Renderer
 {
 public:
-	Renderer(HDC window, float fov, float depth)
-		: m_gameWindow(window), m_fov(fov), m_depth(depth) {}
+	Renderer(HDC window, Vector2 fov, float depth);
 	~Renderer();
 
 	void SetScreenSize(int width, int height);
@@ -29,7 +28,7 @@ private:
 	COLORREF* m_screen;
 	HDC m_gameWindow;
 	Map* m_levelMap;
-	float m_fov;
+	Vector2 m_fov;
 	float m_depth;
 
 	int m_currentRenderingSector = 0;

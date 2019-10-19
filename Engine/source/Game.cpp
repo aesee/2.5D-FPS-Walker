@@ -60,8 +60,9 @@ Game::Game()
 	m_player = new Player();
 	m_input = new Input;
 
-	m_renderer = new Renderer(m_window->GetDeviceContext(), m_FOV, m_depth);
-	m_renderer->SetScreenSize(m_window->GetScreenSize());
+	IntVector2D screenResolution = m_window->GetScreenSize();
+	m_renderer = new Renderer(m_window->GetDeviceContext(), Vector2(0.73f * screenResolution.y, 0.2f * screenResolution.y), m_depth);
+	m_renderer->SetScreenSize(screenResolution);
 }
 
 Game::~Game()
