@@ -53,38 +53,7 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 	std::fill(renderedsectors.begin(), renderedsectors.end(), 0);
 
 	// Find current sector
-	{
-		const Sector* const currentSector = &m_levelMap->sectors[m_currentRenderingSector];
-		const Vector2* const vert = currentSector->vertex;
-		Vector2 playerPosition2D(playerPosition.x, playerPosition.y);
-
-		auto IsPointInBox = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
-		{
-			return (playerPosition.x < std::max(boxPoint1.x, boxPoint2.x)) &&
-				(playerPosition.y < std::max(boxPoint1.y, boxPoint2.y)) &&
-				(std::min(boxPoint1.x, boxPoint2.x) < playerPosition.x) &&
-				(std::min(boxPoint1.y, boxPoint2.y) < playerPosition.y);
-		};
-
-		auto IsPointOnSide = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
-		{
-			return (boxPoint2 - boxPoint1).CrossProduct(playerPosition - boxPoint1) < 0;
-		};
-
-		for (unsigned s = 0; s < currentSector->npoints; ++s)
-		{
-			Vector2 boxPoint1 = vert[s + 0];
-			Vector2 boxPoint2 = vert[s + 1];
-
-			if (currentSector->neighbors[s] >= 0
-				&& IsPointInBox(playerPosition2D, boxPoint1, boxPoint2)
-				&& IsPointOnSide(playerPosition2D, boxPoint1, boxPoint2))
-			{
-				m_currentRenderingSector = currentSector->neighbors[s];
-				break;
-			}
-		}
-	}
+	CheckCurrentSector(playerPosition);
 
 	/* Begin whole-screen rendering from where the player is. */
 	*head = { 
@@ -176,16 +145,16 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				continue; // render if it's visible
 			}
 			/* Acquire the floor and ceiling heights, relative to where the player's view is */
-			float yceil = sector->ceil - playerPosition.z;
-			float yfloor = sector->floor - playerPosition.z;
+			float ceilHeight = sector->ceil - playerPosition.z;
+			float floorHeight = sector->floor - playerPosition.z;
 			/* Check the edge type. neighbor=-1 means wall, other=boundary between two sectors. */
 			int neighbor = sector->neighbors[s];
-			float nyceil = 0; 
-			float nyfloor = 0;
+			float neighborCeilHeight = 0; 
+			float neighborFloorHeight = 0;
 			if (neighbor >= 0) // Is another sector showing through this portal?
 			{
-				nyceil = m_levelMap->sectors[neighbor].ceil - playerPosition.z;
-				nyfloor = m_levelMap->sectors[neighbor].floor - playerPosition.z;
+				neighborCeilHeight = m_levelMap->sectors[neighbor].ceil - playerPosition.z;
+				neighborFloorHeight = m_levelMap->sectors[neighbor].floor - playerPosition.z;
 			}
 			/* Project our ceiling & floor heights into screen coordinates (Y coordinate) */
 			auto GetYaw = [&playerYaw](float y, float z)
@@ -193,15 +162,15 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 				return static_cast<int> (y + z * playerYaw);
 			};
 
-			int y1a = GetScreenSize().y / 2 - (GetYaw(yceil, transformedPoint1.y) * scale1.y);
-			int	y1b = GetScreenSize().y / 2 - (GetYaw(yfloor, transformedPoint1.y) * scale1.y);
-			int y2a = GetScreenSize().y / 2 - (GetYaw(yceil, transformedPoint2.y) * scale2.y);
-			int y2b = GetScreenSize().y / 2 - (GetYaw(yfloor, transformedPoint2.y) * scale2.y);
+			int y1a = GetScreenSize().y / 2 - (GetYaw(ceilHeight, transformedPoint1.y) * scale1.y);
+			int	y1b = GetScreenSize().y / 2 - (GetYaw(floorHeight, transformedPoint1.y) * scale1.y);
+			int y2a = GetScreenSize().y / 2 - (GetYaw(ceilHeight, transformedPoint2.y) * scale2.y);
+			int y2b = GetScreenSize().y / 2 - (GetYaw(floorHeight, transformedPoint2.y) * scale2.y);
 			/* The same for the neighboring sector */
-			int ny1a = GetScreenSize().y / 2 - (GetYaw(nyceil, transformedPoint1.y) * scale1.y);
-			int ny1b = GetScreenSize().y / 2 - (GetYaw(nyfloor, transformedPoint1.y) * scale1.y);
-			int ny2a = GetScreenSize().y / 2 - (GetYaw(nyceil, transformedPoint2.y) * scale2.y);
-			int ny2b = GetScreenSize().y / 2 - (GetYaw(nyfloor, transformedPoint2.y) * scale2.y);
+			int ny1a = GetScreenSize().y / 2 - (GetYaw(neighborCeilHeight, transformedPoint1.y) * scale1.y);
+			int ny1b = GetScreenSize().y / 2 - (GetYaw(neighborFloorHeight, transformedPoint1.y) * scale1.y);
+			int ny2a = GetScreenSize().y / 2 - (GetYaw(neighborCeilHeight, transformedPoint2.y) * scale2.y);
+			int ny2b = GetScreenSize().y / 2 - (GetYaw(neighborFloorHeight, transformedPoint2.y) * scale2.y);
 
 			/* Render the wall. */
 			int beginx = std::max(projection1, currentNode.sx1);
@@ -320,5 +289,39 @@ void Renderer::DrawVerticalLine(int x, int y1, int y2, int top, int middle, int 
 			SetPixel(y*resolution.x + x, middle);
 		}
 		SetPixel(y2*resolution.x + x, bottom);
+	}
+}
+
+void Renderer::CheckCurrentSector(Vector3& playerPosition)
+{
+	const Sector* const currentSector = &m_levelMap->sectors[m_currentRenderingSector];
+	const Vector2* const vert = currentSector->vertex;
+	Vector2 playerPosition2D(playerPosition.x, playerPosition.y);
+
+	auto IsPointInBox = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
+	{
+		return (playerPosition.x < std::max(boxPoint1.x, boxPoint2.x)) &&
+			(playerPosition.y < std::max(boxPoint1.y, boxPoint2.y)) &&
+			(std::min(boxPoint1.x, boxPoint2.x) < playerPosition.x) &&
+			(std::min(boxPoint1.y, boxPoint2.y) < playerPosition.y);
+	};
+
+	auto IsPointOnSide = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
+	{
+		return (boxPoint2 - boxPoint1).CrossProduct(playerPosition - boxPoint1) < 0;
+	};
+
+	for (unsigned s = 0; s < currentSector->npoints; ++s)
+	{
+		Vector2 boxPoint1 = vert[s + 0];
+		Vector2 boxPoint2 = vert[s + 1];
+
+		if (currentSector->neighbors[s] >= 0
+			&& IsPointInBox(playerPosition2D, boxPoint1, boxPoint2)
+			&& IsPointOnSide(playerPosition2D, boxPoint1, boxPoint2))
+		{
+			m_currentRenderingSector = currentSector->neighbors[s];
+			break;
+		}
 	}
 }

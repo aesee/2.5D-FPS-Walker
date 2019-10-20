@@ -23,6 +23,7 @@ private:
 	void MoveBufferToScreen();
 
 	void DrawVerticalLine(int x, int y1, int y2, int top, int middle, int bottom);
+	void CheckCurrentSector(Vector3& playerPosition);
 
 private:
 	IntVector2D m_resolution;
