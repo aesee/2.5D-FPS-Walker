@@ -1,5 +1,6 @@
 #pragma once
 #include "EngineLib.h"
+#define NOMINMAX
 #include <Windows.h>
 
 class Map;

@@ -52,26 +52,39 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 	std::vector<int> renderedsectors(NumSectors);
 	std::fill(renderedsectors.begin(), renderedsectors.end(), 0);
 
-	/*const Sector* const sector = &m_levelMap->sectors[m_currentRenderingSector];
-	const Vector2* const vert = sector->vertex;
-#define min(a,b)             (((a) < (b)) ? (a) : (b)) // min: Choose smaller of two scalars.
-#define max(a,b)             (((a) > (b)) ? (a) : (b)) // max: Choose greater of two scalars.
-#define Overlap(a0,a1,b0,b1) (min(a0,a1) <= max(b0,b1) && min(b0,b1) <= max(a0,a1))
-#define vxs(x0,y0, x1,y1)    ((x0)*(y1) - (x1)*(y0))   // vxs: Vector cross product
-#define IntersectBox(x0,y0, x1,y1, x2,y2, x3,y3) (Overlap(x0,x1,x2,x3) && Overlap(y0,y1,y2,y3))
-#define PointSide(px,py, x0,y0, x1,y1) vxs((x1)-(x0), (y1)-(y0), (px)-(x0), (py)-(y0))
-	float px = playerPosition.x;
-	float py = playerPosition.y;
-	for (unsigned s = 0; s < sector->npoints; ++s)
+	// Find current sector
 	{
-		if (sector->neighbors[s] >= 0
-			&& IntersectBox(px, py, px + dx, py + dy, vert[s + 0].x, vert[s + 0].y, vert[s + 1].x, vert[s + 1].y)
-			&& PointSide(px + dx, py + dy, vert[s + 0].x, vert[s + 0].y, vert[s + 1].x, vert[s + 1].y) < 0)
+		const Sector* const currentSector = &m_levelMap->sectors[m_currentRenderingSector];
+		const Vector2* const vert = currentSector->vertex;
+		Vector2 playerPosition2D(playerPosition.x, playerPosition.y);
+
+		auto IsPointInBox = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
 		{
-			m_currentRenderingSector = sector->neighbors[s];
-			break;
+			return (playerPosition.x < std::max(boxPoint1.x, boxPoint2.x)) &&
+				(playerPosition.y < std::max(boxPoint1.y, boxPoint2.y)) &&
+				(std::min(boxPoint1.x, boxPoint2.x) < playerPosition.x) &&
+				(std::min(boxPoint1.y, boxPoint2.y) < playerPosition.y);
+		};
+
+		auto IsPointOnSide = [](Vector2& playerPosition, Vector2& boxPoint1, Vector2& boxPoint2)
+		{
+			return (boxPoint2 - boxPoint1).CrossProduct(playerPosition - boxPoint1) < 0;
+		};
+
+		for (unsigned s = 0; s < currentSector->npoints; ++s)
+		{
+			Vector2 boxPoint1 = vert[s + 0];
+			Vector2 boxPoint2 = vert[s + 1];
+
+			if (currentSector->neighbors[s] >= 0
+				&& IsPointInBox(playerPosition2D, boxPoint1, boxPoint2)
+				&& IsPointOnSide(playerPosition2D, boxPoint1, boxPoint2))
+			{
+				m_currentRenderingSector = currentSector->neighbors[s];
+				break;
+			}
 		}
-	}*/
+	}
 
 	/* Begin whole-screen rendering from where the player is. */
 	*head = { 
@@ -191,8 +204,8 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 			int ny2b = GetScreenSize().y / 2 - (GetYaw(nyfloor, transformedPoint2.y) * scale2.y);
 
 			/* Render the wall. */
-			int beginx = max(projection1, currentNode.sx1);
-			int endx = min(projection2, currentNode.sx2);
+			int beginx = std::max(projection1, currentNode.sx1);
+			int endx = std::min(projection2, currentNode.sx2);
 			for (int x = beginx; x <= endx; ++x)
 			{
 				/* Calculate the Z coordinate for this point. (Only used for lighting.) */
@@ -218,10 +231,10 @@ void Renderer::DrawFrame(Vector3& playerPosition, float playerRotation)
 					unsigned r1 = Colors::White * (255 - z);
 					unsigned r2 = Colors::BlackCurrant * (31 - z / 8);
 					DrawVerticalLine(x, cya, cnya - 1, 0, x == projection1 || x == projection2 ? 0 : r1, 0); // Between our and their ceiling
-					ytop[x] = std::clamp(max(cya, cnya), ytop[x], GetScreenSize().y - 1);   // Shrink the remaining window below these ceilings
+					ytop[x] = std::clamp(std::max(cya, cnya), ytop[x], GetScreenSize().y - 1);   // Shrink the remaining window below these ceilings
 					/* If our floor is lower than their floor, render bottom wall */
 					DrawVerticalLine(x, cnyb + 1, cyb, 0, x == projection1 || x == projection2 ? 0 : r2, 0); // Between their and our floor
-					ybottom[x] = std::clamp(min(cyb, cnyb), 0, ybottom[x]); // Shrink the remaining window above these floors
+					ybottom[x] = std::clamp(std::min(cyb, cnyb), 0, ybottom[x]); // Shrink the remaining window above these floors
 				}
 				else
 				{
